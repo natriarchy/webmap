@@ -8,7 +8,7 @@ export class LeftPane extends Control {
   toggleStatus = false;
   toggleIcons = (paneOpen: boolean):BSIconOptions => paneOpen ? 'arrow-left-square-fill' : 'list';
   paneSectionsElement: HTMLElement;
-  activeSectionsControls: Array<string> = [];
+  activeSectionsControls: Array<string> = ['layersmanager','settings'];
   constructor(
     options: {
       paneName: string,
@@ -50,6 +50,7 @@ export class LeftPane extends Control {
         .getArray()
         .map(c => c.constructor.name.toLowerCase())
         .filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
+      console.info(this.activeSectionsControls);
       this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
     }, 1000);
   }
