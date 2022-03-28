@@ -25,7 +25,6 @@ export class LeftPane extends Control {
     this.toggleBtn = createElementWith(false, 'button', {
       title: 'Toggle ' + options.paneName,
       class: `control-button ${options.paneName.toLowerCase()}-toggle`,
-      'aria-label': '',
       innerHTML: generatePointSVG(this.toggleIcons(this.toggleStatus)).outerHTML
     });
     this.toggleBtn.addEventListener(
