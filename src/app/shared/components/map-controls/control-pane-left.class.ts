@@ -52,7 +52,7 @@ export class LeftPane extends Control {
   intializePane(map?: Map) {
     console.info(map);
     if (map) {
-      this.activeSectionsControls = map.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()))!;
+      this.activeSectionsControls = map.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
       this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
     } else {
       setTimeout(this.intializePane, 1000, this.getMap());
