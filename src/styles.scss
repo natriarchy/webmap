@@ -354,6 +354,8 @@ body {
 }
 
 #controls-pane-left {
+    display: flex;
+    flex-direction: column;
     position: fixed;
     width: 300px;
     left: 0.55rem;
@@ -363,7 +365,6 @@ body {
     z-index: 1;
     border-radius: 7px;
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-    overflow-y: auto;
     transition-property: width, flex, min-width, overflow, border-right;
     transition: 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
     .pane-section-container {
@@ -375,6 +376,8 @@ body {
         flex-direction: column;
         background: white;
         padding: 1rem;
+        overflow-y: auto;
+        flex: 1 1 auto;
         &.active {
             display: flex;
             animation-name: movein;
@@ -419,8 +422,9 @@ body {
     flex-direction: row;
     overflow-x: auto;
     width: 100%;
+    min-height: calc(3.5rem + 1vh);
     div.pane-section {
-        margin: 0.75rem;
+        padding: 0.75rem;
         input {
             position: absolute;
             opacity: 0;

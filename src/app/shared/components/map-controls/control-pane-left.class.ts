@@ -50,7 +50,11 @@ export class LeftPane extends Control {
   intializePane(map?: Map): void {
     console.info(map);
     if (map) {
-      const activeControls = super.getMap()!.getControls().getArray().filter(n => n.hasOwnProperty('name') && ['layersmanager','settings'].includes(n.get('name') || '')).map(c => c.get('name')!.toLowerCase());
+      const activeControls = super.getMap()!
+        .getControls()
+        .getArray()
+        .filter(n => n.hasOwnProperty('name') && ['layersmanager','settings'].includes(n.get('name') || ''))
+        .map(c => c.get('name')!.toLowerCase());
       let paneSectionsHTML = '';
       const sectionRadioInput = (section: string) => createElementWith(false, 'input', {
         type: 'radio',
