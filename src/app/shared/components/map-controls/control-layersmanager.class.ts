@@ -13,6 +13,7 @@ export class LayersManager extends Control {
     super({
       element: options.parentContainer
     });
+    this.set('name', this.name);
     this.layerListDiv = createElementWith(false, 'div', {class: 'pane-section-container '+this.name});
     setTimeout(this.intializeLayers.bind(this),1000, this.getMap());
   }

@@ -2,6 +2,7 @@ import { Control } from 'ol/control';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Fullscreen extends Control {
+  name = 'fullscreen-toggle';
   ctrlBtn: HTMLElement;
   fullScreenActive = false;
   events = [
@@ -21,6 +22,7 @@ export class Fullscreen extends Control {
     super({
       element: options.parentContainer
     });
+    this.set('name', this.name);
     this.ctrlBtn = createElementWith(false, 'button', {
       title: 'Toggle Full Screen',
       class: 'control-button fullscreen-toggle',

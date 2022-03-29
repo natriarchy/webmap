@@ -5,6 +5,7 @@ import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 import { BSIconOptions } from '../../utils/constants';
 
 export class ZoomExtentGroup extends Control {
+  name = 'zoom-extent-grp';
   buttonGrp: HTMLDivElement;
   buttonDetails: Array<{btnTitle: string, btnAddClass?: string, btnAriaLabel?: string, btnIcon: BSIconOptions; }>= [
     {btnTitle: 'Zoom In', btnAriaLabel: 'Plus Magnifying Glass Icon, Use to Increase Zoom', btnIcon: 'zoom-in'},
@@ -20,6 +21,7 @@ export class ZoomExtentGroup extends Control {
     super({
       element: options.parentContainer
     });
+    this.set('name', this.name);
     this.defaultExtent = options.defaultExtent;
     this.buttonGrp = document.createElement('div');
     this.buttonGrp.className = 'control-grp zoom-extent-grp';

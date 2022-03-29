@@ -2,6 +2,7 @@ import { Control } from 'ol/control';
 import { generatePointSVG } from '../../utils/fns-utility';
 
 export class Search extends Control {
+  name = 'search';
   searchElement: HTMLDivElement;
   searchIcon: SVGSVGElement;
   searchInput: HTMLInputElement;
@@ -37,6 +38,7 @@ export class Search extends Control {
   ];
   constructor(options: { parentContainer: HTMLElement }) {
     super({ element: options.parentContainer });
+    this.set('name', this.name);
     this.searchElement = document.createElement('div');
     this.searchIcon = generatePointSVG('search', false, {class:'search-icon'}) as SVGSVGElement;
     this.searchInput = document.createElement('input');

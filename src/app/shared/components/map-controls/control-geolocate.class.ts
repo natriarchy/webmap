@@ -8,6 +8,7 @@ import { generateIconStyle } from '../../utils/generate-layer';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Geolocate extends Control {
+  name = 'geolocation';
   geolocation: Geolocation;
   positionFeature: Feature<any>;
   accuracyFeature: Feature<any>;
@@ -20,6 +21,7 @@ export class Geolocate extends Control {
     super({
       element: options.parentContainer
     });
+    this.set('name', this.name);
     this.geolocation = new Geolocation({
       trackingOptions: { enableHighAccuracy: true }
     });

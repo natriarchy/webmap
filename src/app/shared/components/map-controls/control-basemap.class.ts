@@ -5,6 +5,7 @@ import { XYZ } from 'ol/source';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class BasemapToggle extends Control {
+  name = 'basemap-toggle';
   basemapType: 'Streets' | 'Satellite';
   dropdownContent: HTMLElement;
   tippyDropdown: any;
@@ -27,6 +28,7 @@ export class BasemapToggle extends Control {
     super({
       element: options.parentContainer
     });
+    this.set('name', this.name);
     this.basemapType = options.defaultBasemap || 'Streets';
     const ctrlBtn = createElementWith(false, 'button', {
       title: 'Set Basemap',

@@ -11,6 +11,7 @@ import tippy from 'tippy.js';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Measure extends Control {
+  name = 'measure';
   dropdownContent: HTMLElement;
   tippyDropdown: any;
   source = new VectorSource();
@@ -116,6 +117,7 @@ export class Measure extends Control {
     super({
       element: options.parentContainer
     });
+    this.set('name', this.name);
     this.drawInteraction = new Draw({type: this.geomType[this.drawType]});
     const ctrlBtn = createElementWith(false, 'button', {
       title: 'Measure Distance, Radius, or Area',

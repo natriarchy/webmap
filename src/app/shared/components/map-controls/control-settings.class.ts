@@ -12,6 +12,7 @@ export class Settings extends Control {
     super({
       element: options.parentContainer
     });
+    this.set('name', this.name);
     this.settingsDiv = createElementWith(false, 'div', {class: 'pane-section-container '+this.name});
     this.element.appendChild(this.settingsDiv);
   }
