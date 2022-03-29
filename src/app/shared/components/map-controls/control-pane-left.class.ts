@@ -48,9 +48,13 @@ export class LeftPane extends Control {
     setTimeout(this.initializePane, 1000);
   }
   initializePane(): void {
-    this.activeSectionsControls = this.getMap()!.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
-    console.info(this.activeSectionsControls);
-    this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
+    if (this.getMap()) {
+      this.activeSectionsControls = this.getMap()!.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
+      this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
+    } else {
+      console.warn(this);
+      setTimeout(this.initializePane, 1000);
+    }
   }
   handleToggle(event: MouseEvent): void {
     event.preventDefault();
