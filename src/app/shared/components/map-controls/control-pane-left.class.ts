@@ -1,3 +1,4 @@
+import { Map } from 'ol';
 import { Control } from 'ol/control';
 import { BSIconOptions } from '../../utils/constants';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
@@ -44,17 +45,18 @@ export class LeftPane extends Control {
       }
     });
     this.paneElement.prepend(this.paneSectionsElement);
-
-    setTimeout(this.initializePane, 1000);
-  }
-  initializePane(): void {
-    if (this.getMap()) {
-      this.activeSectionsControls = this.getMap()!.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
-      this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
-    } else {
-      console.warn(this);
-      setTimeout(this.initializePane, 1000);
-    }
+    setTimeout(() => {
+      if (this.getMap()) {
+        this.activeSectionsControls = this.getMap()!.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()))!;
+        this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
+      } else {
+        console.warn(this);
+        setTimeout(() => {
+          this.activeSectionsControls = this.getMap()!.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()))!;
+          this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
+        },1500);
+      }
+    },1000);
   }
   handleToggle(event: MouseEvent): void {
     event.preventDefault();
