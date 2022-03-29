@@ -49,9 +49,22 @@ export class LeftPane extends Control {
   }
   intializePane(map?: Map): void {
     if (map) {
-      const activeControls = super.getMap()!.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
-      console.info(activeControls);
-      document.getElementById('pane-sections')!.innerHTML = this.setUpPaneSections(activeControls);
+      const activeControls = super.getMap()!.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n));
+      let paneSectionsHTML = '';
+      const sectionRadioInput = (section: string) => createElementWith(false, 'input', {
+        type: 'radio',
+        name: 'sections',
+        class: 'pane-section-radio',
+        id: 'pane-radio-' + section,
+        value: section
+      });
+      const sectionRadioLabel = (section: string) => createElementWith(false, 'label', {
+        class: 'pane-section-label',
+        for: 'pane-radio-' + section,
+        innerHTML: generatePointSVG(section === 'settings' ? 'settings' : 'layers').outerHTML
+      });
+      activeControls.forEach(s => paneSectionsHTML += `<div class="pane-section">${sectionRadioInput(s).outerHTML + sectionRadioLabel(s).outerHTML}</div>`);
+      document.getElementById('pane-sections')!.innerHTML = paneSectionsHTML;
     } else {
       setTimeout(this.intializePane.bind(this), 1000, this.getMap());
     }
@@ -63,23 +76,5 @@ export class LeftPane extends Control {
     this.toggleStatus = !this.toggleStatus;
     this.set('toggleStatus', this.toggleStatus);
     this.toggleBtn.replaceChildren(generatePointSVG(this.toggleIcons(this.toggleStatus)));
-  }
-  setUpPaneSections(paneSections: Array<string>): string {
-    let paneSectionsHTML = '';
-    const sectionRadioInput = (section: string) => createElementWith(false, 'input', {
-      type: 'radio',
-      name: 'sections',
-      class: 'pane-section-radio',
-      id: 'pane-radio-' + section,
-      value: section
-    });
-    const sectionRadioLabel = (section: string) => createElementWith(false, 'label', {
-      class: 'pane-section-label',
-      for: 'pane-radio-' + section,
-      innerHTML: generatePointSVG(section === 'settings' ? 'settings' : 'layers').outerHTML
-    });
-    paneSections.forEach(s => paneSectionsHTML += `<div class="pane-section">${sectionRadioInput(s).outerHTML + sectionRadioLabel(s).outerHTML}</div>`);
-
-    return paneSectionsHTML;
   }
 }
