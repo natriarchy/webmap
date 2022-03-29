@@ -65,9 +65,11 @@ export class LeftPane extends Control {
         innerHTML: section === 'layersmanager' ? generatePointSVG('layers').outerHTML : generatePointSVG(section as BSIconOptions).outerHTML
       });
       activeControls.forEach(s => paneSectionsHTML += `<div class="pane-section">${sectionRadioInput(s).outerHTML + sectionRadioLabel(s).outerHTML}</div>`);
+      console.info(paneSectionsHTML);
       document.getElementById('pane-sections')!.innerHTML = paneSectionsHTML;
+      console.info(document.getElementById('pane-sections'));
     } else {
-      setTimeout(this.intializePane.bind(this), 1000, this.getMap());
+      setTimeout(this.intializePane.bind(this), 1000, super.getMap());
     }
   }
   handleToggle(event: MouseEvent): void {
