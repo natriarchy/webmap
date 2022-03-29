@@ -45,17 +45,14 @@ export class LeftPane extends Control {
       }
     });
     this.paneElement.prepend(this.paneSectionsElement);
-    setTimeout(() => {
-      this.intializePane(this.getMap());
-    },1000);
+    setTimeout(this.intializePane.bind(this), 1000, this.getMap());
   }
   intializePane(map?: Map) {
-    console.info(this);
     if (map) {
       this.activeSectionsControls = map.getControls().getArray().map(c => c.constructor.name.toLowerCase()).filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
       this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
     } else {
-      setTimeout(this.intializePane, 1000, this.getMap());
+      setTimeout(this.intializePane.bind(this), 1000, this.getMap());
     }
   }
   handleToggle(event: MouseEvent): void {
@@ -66,7 +63,7 @@ export class LeftPane extends Control {
     this.set('toggleStatus', this.toggleStatus);
     this.toggleBtn.replaceChildren(generatePointSVG(this.toggleIcons(this.toggleStatus)));
   }
-  setUpPaneSections(paneSections: Array<string>): string {
+  public setUpPaneSections(paneSections: Array<string>): string {
     let paneSectionsHTML = '';
     const sectionRadioInput = (section: string) => createElementWith(false, 'input', {
       type: 'radio',
