@@ -14,17 +14,15 @@ export class LayersManager extends Control {
       element: options.parentContainer
     });
     this.layerListDiv = createElementWith(false, 'div', {class: 'pane-section-container '+this.name});
-    setTimeout(() => {
-      if (this.getMap()) {
-        this.generateLayers();
-        this.element.appendChild(this.layerListDiv);
-      } else {
-        setTimeout(() => {
-          this.generateLayers();
-          this.element.appendChild(this.layerListDiv);
-        },1500);
-      }
-    },1000);
+    setTimeout(this.intializeLayers.bind(this),1000, this.getMap());
+  }
+  intializeLayers(map: any): void {
+    if (map) {
+      this.generateLayers();
+      this.element.appendChild(this.layerListDiv);
+    } else {
+      setTimeout(this.intializeLayers.bind(this), 1000, this.getMap());
+    }
   }
   handleClick(event: MouseEvent): void {
     console.log(event);
