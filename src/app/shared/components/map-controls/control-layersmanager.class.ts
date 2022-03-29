@@ -15,8 +15,15 @@ export class LayersManager extends Control {
     });
     this.layerListDiv = createElementWith(false, 'div', {class: 'pane-section-container '+this.name});
     setTimeout(() => {
+      if (this.getMap()) {
         this.generateLayers();
         this.element.appendChild(this.layerListDiv);
+      } else {
+        setTimeout(() => {
+          this.generateLayers();
+          this.element.appendChild(this.layerListDiv);
+        },1500);
+      }
     },1000);
   }
   handleClick(event: MouseEvent): void {
