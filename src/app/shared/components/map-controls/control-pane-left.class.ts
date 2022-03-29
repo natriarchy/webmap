@@ -45,14 +45,24 @@ export class LeftPane extends Control {
     });
     this.paneElement.prepend(this.paneSectionsElement);
 
-    this.once('propertychange', (e) =>  {
-      this.activeSectionsControls = this.getMap()!.getControls()
-        .getArray()
-        .map(c => c.constructor.name.toLowerCase())
-        .filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
-      console.info(this.activeSectionsControls);
-      this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
-    });
+    setTimeout(() => {
+      if (this.getMap) {
+        this.activeSectionsControls = this.getMap()!.getControls()
+          .getArray()
+          .map(c => c.constructor.name.toLowerCase())
+          .filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
+        console.info(this.activeSectionsControls);
+        this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
+      } else {
+        setTimeout(() => {
+          this.activeSectionsControls = this.getMap()!.getControls()
+            .getArray()
+            .map(c => c.constructor.name.toLowerCase())
+            .filter(n => ['layersmanager','settings'].includes(n.toLowerCase()));
+          this.paneSectionsElement.innerHTML = this.setUpPaneSections(this.activeSectionsControls);
+        },1000);
+      }
+    }, 1000);
   }
   handleToggle(event: MouseEvent): void {
     event.preventDefault();
