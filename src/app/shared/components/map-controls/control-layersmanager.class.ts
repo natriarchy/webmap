@@ -50,7 +50,7 @@ export class LayersManager extends Control {
             const currentVal = ((e.currentTarget as HTMLFormElement).elements.namedItem('sort-controller') as RadioNodeList).value;
             const valFixed = `data-layer-${currentVal === 'name' ? 'classname' : currentVal}`;
             const sortChildren = Array.from(this.layerListDiv.children).sort(
-              (a,b) => compareValues(a.getAttribute(valFixed)!,b.getAttribute(valFixed)!)
+              (a,b) => compareValues(a.getAttribute(valFixed)!,b.getAttribute(valFixed)!,currentVal === 'visible' ? 'desc' : 'asc')
             );
             this.layerListDiv.replaceChildren(...sortChildren);
           }
