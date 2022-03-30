@@ -9,7 +9,9 @@ export function createElementWith<T extends boolean, SVGType extends keyof SVGEl
     ? document.createElementNS(`http://www.w3.org/2000/${elementType}`, elementType)
     : document.createElement(elementType);
   Object.entries(setAttributes).forEach(i => {
-    if (i[0] === 'innerHTML') {
+    if (i[0] === 'children') {
+      newElement.append(...i[1]);
+    } else if (i[0] === 'innerHTML') {
       newElement.innerHTML = i[1];
     } else if (typeof i[1] === 'string' || i[0].startsWith('data')) {
       newElement.setAttribute(i[0], i[1]);
@@ -20,7 +22,34 @@ export function createElementWith<T extends boolean, SVGType extends keyof SVGEl
 
   return newElement as T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType];
 };
+export const createBtnGrp = (buttons: Array<{name: string; value: any;}>, onClickFn?: any): HTMLElement => {
+  const newBtns: Array<HTMLElement> = [];
+  buttons.forEach((b,i,a) => {
+    const newbtn = createElementWith(false, 'button', {
+      type: 'button',
+      title: b.name,
+      class: firstOrLast(i,a.length),
+      innerHTML: b.name,
+      value: b.value,
+      onclick: onClickFn
+    });
+    newBtns.push(newbtn);
+  });
+  console.info(newBtns);
 
+  return createElementWith(false, 'div', {
+    class: 'button-group',
+    children: newBtns
+  });
+}
+export function createFormField(inputType: 'checkbox' | 'radio', initState: 'checked' | '', inputVal: string, labelText: string, groupName?: string, addWrapperClass?: string): HTMLElement {
+  const fieldInput = `<input type="${inputType}" id="${inputVal.replace(/(_|\s|\&)/gi, '-').toLowerCase() + '-' + inputType}" ${groupName ? 'name="' + groupName + '"' : ''} checked="${initState}" value="${inputVal}" />`;
+  const fieldLabel = `<label for="${inputVal.replace(/(_|\s|\&)/gi, '-').toLowerCase() + '-' + inputType}">${makeTitleCase(labelText)}</label>`;
+  return createElementWith(false, 'div', {
+    class: `hidden-input-field${addWrapperClass ? ' '+addWrapperClass : ''}`,
+    innerHTML: fieldInput + fieldLabel
+  });
+}
 export const generatePointSVG = (shape: BSIconOptions, mapIcon = false, setAttributes?: {[prop: string]: any}): SVGSVGElement => {
   const svgEl = createElementWith(true, 'svg', {
     'xmlns': 'http://www.w3.org/2000/svg',
@@ -36,7 +65,7 @@ export const generatePointSVG = (shape: BSIconOptions, mapIcon = false, setAttri
   return svgEl;
 };
 
-export const makeTitleCase = (str: string, separator: string): string => str.split(separator || ' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+export const makeTitleCase = (str: string, separator?: string): string => str.split(separator || ' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
 
 export const generateAttrTable = (
   header: string,
@@ -83,4 +112,35 @@ export const convertToHexOpacity = (opacityDecimal: number): string => {
   };
 
   return hexOpacities[opacityDecimal.toFixed(1) as string];
+};
+
+export function compareValues(valA: any, valB: any, order: 'asc' | 'desc' = 'asc') {
+  if (!valA || !valB) {
+    // property doesn't exist on either object
+    return 0;
+  }
+
+  const varA = (typeof valA === 'string')
+    ? valA.toUpperCase() : valA;
+  const varB = (typeof valB === 'string')
+    ? valB.toUpperCase() : valB;
+
+  let comparison = 0;
+  if (varA > varB) {
+    comparison = 1;
+  } else if (varA < varB) {
+    comparison = -1;
+  }
+  return (
+    (order === 'desc') ? (comparison * -1) : comparison
+  );
+};
+export const firstOrLast = (curIndex: number, max: number): string | undefined => {
+  if (curIndex === 0) {
+    return 'first';
+  } else if (curIndex === (max-1)) {
+    return 'last';
+  } else {
+    return '';
+  }
 };
