@@ -50,14 +50,14 @@ export class ZoomExtentGroup extends Control {
         fromExtent(this.defaultExtent!),
         {
           padding: [10,10,10,10],
-          duration: 350,
+          duration: 250,
           easing: easeOut
         });
     } else {
       const newZoom = view.getConstrainedZoom(view.getZoom()! + (btnTitle === 'Zoom In' ? 1 : -1));
       view.animate({
         zoom: newZoom,
-        duration: 350,
+        duration: 250,
         easing: easeOut
       });
     };

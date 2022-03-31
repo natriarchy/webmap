@@ -94,25 +94,8 @@ export class MapViewComponent implements OnInit, AfterViewInit {
         ]
       })
     });
-    // this.instance.once('postcompose', (e) => {
-    //   console.info(this.instance.getControls().getArray().map(c => c.constructor.name));
-    //    if (this.controlsPaneLeftElement?.firstElementChild && this.controlsPaneLeftElement.firstElementChild.children.length > 0) {
-    //     this.controlsPaneLeftElement.firstElementChild.querySelector('input')!.checked = true;
-    //     const startingVal = this.controlsPaneLeftElement.firstElementChild.querySelector('input')?.value;
-    //     if (this.controlsPaneLeftElement && startingVal) this.controlsPaneLeftElement.querySelector(`.pane-section-container.${startingVal}`)?.classList.add('active');
-    //    };
-    // });
-    // if (this.controlsPaneLeftElement.firstElementChild && this.controlsPaneLeftElement.firstElementChild.children.length > 0) {
-    //   (this.controlsPaneLeftElement.firstElementChild as HTMLFormElement).onchange = e => {
-    //      const curInput = (e.currentTarget as HTMLFormElement).querySelector('input:checked') as HTMLInputElement;
-    //      console.info(this.controlsPaneLeftElement?.querySelectorAll('.pane-section-container'));
-    //      this.controlsPaneLeftElement?.querySelectorAll('.pane-section-container').forEach(i => {
-    //        i.classList.contains(curInput.value) ? i.classList.add('active') : i.classList.remove('active')
-    //       });
-    //   }
-    // };
     this.instance.on('pointermove', (e) => {
-      if (this.isCanvasCondition(e) === false || e.dragging) {
+      if (this.isCanvasCondition(e) === false || e.dragging || this.drawInteraction?.getActive()) {
         this.pointerTooltip.setPosition(undefined);
         this.pointerPopupElement!.innerHTML = '';
         return;
@@ -120,9 +103,9 @@ export class MapViewComponent implements OnInit, AfterViewInit {
       const hit = this.instance.hasFeatureAtPixel(e.pixel);
       this.pointerTooltip.setPosition(hit ? e.coordinate : undefined);
       if (!hit) this.pointerPopupElement!.innerHTML = '';
-      if (this.selectHover.getFeatures().getLength() > 0) {
+      if (this.selectHover.getActive() && this.selectHover.getFeatures().getLength() > 0) {
         const feat = this.selectHover.getFeatures().item(0);
-        this.pointerPopupElement!.replaceChildren(
+        if (this.selectHover.getLayer(feat)) this.pointerPopupElement!.replaceChildren(
           generateAttrTable(this.selectHover.getLayer(feat).getClassName(), feat.getId() as string)
         );
       }

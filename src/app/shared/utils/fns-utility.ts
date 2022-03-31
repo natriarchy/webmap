@@ -1,13 +1,17 @@
 import { BSIconOptions, svgPath } from "./constants";
 
+/**
+ * Function to create an SVG or HTML element and set various attributes at the same time
+ * @param {boolean} svgNamespace Enter true if you're generating an SVG Element
+ * @param {string} elementType TagName of the Element you're generating
+ * @param {object} setAttributes Object of Other Attributes you want to set
+ **/
 export function createElementWith<T extends boolean, SVGType extends keyof SVGElementTagNameMap, HTMLType extends keyof HTMLElementTagNameMap>(
-  svgNamespace: T,
-  elementType: SVGType | HTMLType,
-  setAttributes: {[key: string]: any}
+    svgNamespace: T,
+    elementType: SVGType | HTMLType,
+    setAttributes: {[key: string]: any}
   ): T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType] {
-  const newElement = svgNamespace
-    ? document.createElementNS(`http://www.w3.org/2000/${elementType}`, elementType)
-    : document.createElement(elementType);
+  const newElement = svgNamespace ? document.createElementNS(`http://www.w3.org/2000/${elementType}`, elementType) : document.createElement(elementType);
   Object.entries(setAttributes).forEach(i => {
     if (i[0] === 'children') {
       newElement.append(...i[1]);
@@ -22,6 +26,7 @@ export function createElementWith<T extends boolean, SVGType extends keyof SVGEl
 
   return newElement as T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType];
 };
+
 export const createBtnGrp = (buttons: Array<{name: string; value: any;}>, onClickFn?: any): HTMLElement => {
   const newBtns: Array<HTMLElement> = [];
   buttons.forEach((b,i,a) => {
@@ -41,15 +46,24 @@ export const createBtnGrp = (buttons: Array<{name: string; value: any;}>, onClic
     class: 'button-group',
     children: newBtns
   });
-}
+};
+
 export function createFormField(inputType: 'checkbox' | 'radio', initState: 'checked' | '', inputVal: string, labelText: string, groupName?: string, addWrapperClass?: string): HTMLElement {
   const fieldInput = `<input type="${inputType}" id="${inputVal.replace(/(_|\s|\&)/gi, '-').toLowerCase() + '-' + inputType}" ${groupName ? 'name="' + groupName + '"' : ''} checked="${initState}" value="${inputVal}" />`;
   const fieldLabel = `<label for="${inputVal.replace(/(_|\s|\&)/gi, '-').toLowerCase() + '-' + inputType}">${makeTitleCase(labelText)}</label>`;
   return createElementWith(false, 'div', {
-    class: `hidden-input-field${addWrapperClass ? ' '+addWrapperClass : ''}`,
+    class: `input-field-group hide-input ${addWrapperClass ? ' '+addWrapperClass : ''}`,
     innerHTML: fieldInput + fieldLabel
   });
 }
+
+/**
+ * Function to quickly generate an SVG Element
+ * @param {string} shape Name of the BootStrap Icon you want as an SVG Element
+ * @param {boolean} mapIcon If true, will set it up to respond to the color attribute in OL Styles
+ * @param {object} setAttributes Object of Other Attributes you want to set
+ * @returns {SVGSVGElement} Returns an SVG Element
+ **/
 export const generatePointSVG = (shape: BSIconOptions, mapIcon = false, setAttributes?: {[prop: string]: any}): SVGSVGElement => {
   const svgEl = createElementWith(true, 'svg', {
     'xmlns': 'http://www.w3.org/2000/svg',
@@ -65,6 +79,12 @@ export const generatePointSVG = (shape: BSIconOptions, mapIcon = false, setAttri
   return svgEl;
 };
 
+/**
+ * Utility to convert a string to titlecase
+ * @param {string} str Input String to Transform
+ * @param {string} separator If Input String has no spaces, include the character to convert to spaces
+ * @return {string} Returns the corrected string with each word capitalized and with spaces between them.
+ **/
 export const makeTitleCase = (str: string, separator?: string): string => str.split(separator || ' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
 
 export const generateAttrTable = (
@@ -84,6 +104,13 @@ export const generateAttrTable = (
   return newTable;
 };
 
+/**
+ * Utility to get a contrasting color from the input color. Generates a simplified
+ * brightness score (YIQ) for a given color in hex or rgb notation. If the score is
+ * above 159 then it's considered a bright color.
+ * @param {string} colorString A hex or rgb string representation of a color
+ * @returns {string} Returns a dark or light color that will contrast well with the input.
+ **/
 export const getContrastYIQ = (colorString: string): string => {
   const colorType = colorString[0] === '#' ? 'hex' : 'rgb';
   const yiqCalc = (r: number, g: number, b: number): number => ((r * 299) + (g * 587) + (b * 114)) / 1000;
@@ -97,7 +124,12 @@ export const getContrastYIQ = (colorString: string): string => {
   return yiqCalc(rgbObj.r, rgbObj.g, rgbObj.b) >= 160 ? 'rgba(100,100,100,0.9)' : 'rgba(245,245,245,0.9)';
 };
 
-export const convertToHexOpacity = (opacityDecimal: number): string => {
+/**
+ * Utility to easily get the Hex color string opacity notation.
+ * @param {number} opacityLevel The Opacity Fraction to convert to Hexadecimal. Fn will round to the nearest 10th.
+ * @returns {string} returns the two characters to add to the end of a 6 character Hex color string.
+ **/
+export const convertToHexOpacity = (opacityLevel: number): string => {
   const hexOpacities: {[key: string]: string} = {
     '1.0': 'FF',
     '0.9': 'E6',
@@ -111,9 +143,12 @@ export const convertToHexOpacity = (opacityDecimal: number): string => {
     '0.1': '1A'
   };
 
-  return hexOpacities[opacityDecimal.toFixed(1) as string];
+  return hexOpacities[opacityLevel.toFixed(1) as string];
 };
 
+/**
+ * Function used in .sort() to sort strings in ascending or descending order.
+ **/
 export function compareValues(valA: any, valB: any, order: 'asc' | 'desc' = 'asc') {
   if (!valA || !valB) {
     // property doesn't exist on either object
@@ -135,6 +170,10 @@ export function compareValues(valA: any, valB: any, order: 'asc' | 'desc' = 'asc
     (order === 'desc') ? (comparison * -1) : comparison
   );
 };
+
+/**
+ * Function used to check if item is first or last in an array
+ **/
 export const firstOrLast = (curIndex: number, max: number): string | undefined => {
   if (curIndex === 0) {
     return 'first';

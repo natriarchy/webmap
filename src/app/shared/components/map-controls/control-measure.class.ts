@@ -8,6 +8,7 @@ import { Vector as VectorSource } from 'ol/source';
 import { getArea, getLength } from 'ol/sphere';
 import { Circle as CircleStyle, Fill, RegularShape, Stroke, Style, Text } from 'ol/style';
 import tippy from 'tippy.js';
+import { generateToast } from '../../utils/fns-toast';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Measure extends Control {
@@ -218,17 +219,19 @@ export class Measure extends Control {
   }
   addInteraction(): void {
     const activeTip = this.drawType === 'radius'
-    ? 'Click to finish drawing'
-    : 'Click to continue drawing; double-click to finish';
+      ? 'Click to finish drawing'
+      : 'Click to continue drawing; double-click to finish';
     const idleTip = 'Click to start measuring';
     const map = this.getMap()!;
     if (this.modify.getMap()) {
       map.removeInteraction(this.drawInteraction);
     }
     map.addInteraction(this.modify);
+    const newtoast = generateToast('action','Click on Map to Measure', 'Click this to exit measure.');
+    (newtoast.firstElementChild as HTMLElement).onclick = (e: any) => this.endInteraction();
     map.getLayers().forEach(l => {
         if (l.get('className') === 'Hidden') {
-          (l as LayerGroup).getLayers().getArray().find(l => l.getClassName() === 'DrawLayer')
+          (l as LayerGroup).getLayersArray().find(l => l.getClassName() === 'DrawLayer')
           ? (l as LayerGroup).getLayers().extend([this.drawLayer])
           : undefined;
         }
@@ -260,9 +263,7 @@ export class Measure extends Control {
     document.addEventListener(
       'keyup',
       (e) => {
-        if (e.key === 'Escape') {
-        this.endInteraction()
-        }
+        if (e.key === 'Escape') this.endInteraction();
       },
       {once: true}
     );
@@ -273,7 +274,10 @@ export class Measure extends Control {
   endInteraction(): void {
     const map = this.getMap()!;
     this.modify.setActive(false);
+    this.drawInteraction.setActive(false);
     this.drawing = false;
+    if (document.getElementById('toast-message')) document.getElementById('toast-message')!.remove();
+    console.info(this.drawInteraction);
     map.removeInteraction(this.drawInteraction);
     console.info('End Measure Interaction');
   }

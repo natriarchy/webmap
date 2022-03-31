@@ -4,7 +4,8 @@ import { compareValues, createElementWith, createFormField, generatePointSVG, ma
 
 export class LayersManager extends Control {
   name = 'layersmanager';
-  layerListDiv: HTMLDivElement;
+  paneSectionContainer: HTMLDivElement;
+  layersManagerList: HTMLDivElement;
   layersPaneActive = false;
   layerGroups: Set<string> = new Set();
   constructor(
@@ -15,13 +16,15 @@ export class LayersManager extends Control {
       element: options.parentContainer
     });
     this.set('name', this.name);
-    this.layerListDiv = createElementWith(false, 'div', {class: 'pane-section-container '+this.name});
+    this.paneSectionContainer = createElementWith(false, 'div', {class: 'pane-section-container '+this.name});
+    this.element.appendChild(this.paneSectionContainer);
+    this.layersManagerList = createElementWith(false, 'div', {class: 'layersmanager-list'});
     setTimeout(this.intializeLayers.bind(this),1000, this.getMap());
   }
   intializeLayers(map: any): void {
     if (map) {
       this.generateLayers();
-      this.element.appendChild(this.layerListDiv);
+      this.paneSectionContainer.appendChild(this.layersManagerList);
     } else {
       setTimeout(this.intializeLayers.bind(this), 1000, this.getMap());
     }
@@ -33,31 +36,41 @@ export class LayersManager extends Control {
     this.getMap()!.getAllLayers().forEach((l,i,a) => {
       const layerListItem = this.makeLayerListItem(l);
       this.layerGroups.add(l.get('group'));
-      this.layerListDiv.appendChild(layerListItem);
+      this.layersManagerList.appendChild(layerListItem);
     });
     if (this.layerGroups.size > 0) {
       const layergrpOptions = Array.from(this.layerGroups).map(lg => `<option value="${lg}">${lg}</option>`).sort().join('');
-      const filterControl = `<div class="input-field-group"><label for="layersmanager-group-filter">${generatePointSVG('funnel-fill').outerHTML}</label><select id="layersmanager-group-filter"><option value="">--Show All Layers--</option>${layergrpOptions}</select></div>`;
-      const sortControl = ['name', 'group', 'visible'].map(f => createFormField('radio','',f,f,'sort-controller').outerHTML).join('');
+      const filterControl = `
+      <div class="input-field-group full-width">
+        <label class="icon-btn no-interaction" for="layersmanager-group-filter">${generatePointSVG('funnel-fill').outerHTML}</label>
+        <select id="layersmanager-group-filter">
+          <option value="">--Show All Layers--</option>
+          ${layergrpOptions}
+        </select>
+      </div>
+      `;
+      const sortControl = `<span class="icon-btn no-interaction">${generatePointSVG('sort-alpha-down').outerHTML}</span>
+        ` + ['name', 'group', 'visible'].map(f => createFormField('radio','',f,f,'sort-controller').outerHTML).join('');
       const controlForm = createElementWith(false, 'form', {
         class: 'layersmanager-control',
         onchange: (e: InputEvent) => {
           const targetEl = e.target as HTMLElement;
           if (targetEl.id === 'layersmanager-group-filter') {
             const groupFilterVal = (targetEl as HTMLSelectElement).value;
-            document.querySelectorAll('[data-layer-group]').forEach(e => (e as HTMLElement).style.display = (groupFilterVal === '' || e.getAttribute('data-layer-group') === groupFilterVal) ? 'flex' : 'none');
+            document.querySelectorAll('[data-layer-group]')
+              .forEach(e => (e as HTMLElement).className = (groupFilterVal === '' || e.getAttribute('data-layer-group') === groupFilterVal) ? 'layersmanager-item' : 'layersmanager-item hidden');
           } else if ((targetEl as HTMLInputElement).name === 'sort-controller') {
             const currentVal = ((e.currentTarget as HTMLFormElement).elements.namedItem('sort-controller') as RadioNodeList).value;
             const valFixed = `data-layer-${currentVal === 'name' ? 'classname' : currentVal}`;
-            const sortChildren = Array.from(this.layerListDiv.children).sort(
+            const sortChildren = Array.from(this.layersManagerList.children).sort(
               (a,b) => compareValues(a.getAttribute(valFixed)!,b.getAttribute(valFixed)!,currentVal === 'visible' ? 'desc' : 'asc')
             );
-            this.layerListDiv.replaceChildren(...sortChildren);
+            this.layersManagerList.replaceChildren(...sortChildren);
           }
         },
         innerHTML: filterControl + sortControl
       });
-      this.layerListDiv.prepend(controlForm);
+      this.paneSectionContainer.prepend(controlForm);
     }
   }
   makeLayerListItem(lyr: BaseLayer): HTMLElement {
@@ -94,10 +107,10 @@ export class LayersManager extends Control {
     //   // }
     // });
     const infoBtn = createElementWith(false, "button", {
-      class: 'layersmanager-item-info',
+      class: 'layersmanager-item-info icon-btn',
       type: 'button',
       title: lyrClass + ' More Info',
-      innerHTML: generatePointSVG('info').outerHTML,
+      innerHTML: generatePointSVG('info-circle-fill').outerHTML,
       onclick: (e: MouseEvent) => {
         alert(Object.entries(lyr.getProperties()));
       }

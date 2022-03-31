@@ -63,7 +63,7 @@ export class LeftPane extends Control {
         value: section
       });
       const sectionRadioLabel = (section: string) => createElementWith(false, 'label', {
-        class: 'pane-section-label',
+        class: 'pane-section-label icon-btn',
         for: 'pane-radio-' + section,
         innerHTML: section === 'layersmanager' ? generatePointSVG('layers').outerHTML : generatePointSVG(section as BSIconOptions).outerHTML
       });
