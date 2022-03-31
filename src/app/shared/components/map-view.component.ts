@@ -1,14 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  OnInit,
-} from '@angular/core';
+import { Component, ElementRef, OnInit } from '@angular/core';
 import { Overlay, View, Map, MapBrowserEvent } from 'ol';
 import { Attribution, ScaleLine } from 'ol/control';
 import { defaults, DragPan, Draw, Select } from 'ol/interaction';
-import {Condition, pointerMove} from 'ol/events/condition';
+import { Condition, pointerMove} from 'ol/events/condition';
 import { fromLonLat } from 'ol/proj';
 import * as MyControls from './map-controls';
 import { LayerDetailObj } from '../models';
@@ -22,14 +17,13 @@ import { generateAttrTable } from '../utils/fns-utility';
   templateUrl: './map-view.component.html'
 })
 
-export class MapViewComponent implements OnInit, AfterViewInit {
+export class MapViewComponent implements OnInit {
   instance: Map = new Map({});
   controlsTopLeftElement: HTMLElement | undefined;
   controlsToolbarElement: HTMLElement | undefined;
   controlsPaneLeftElement: HTMLElement | undefined;
   pointerPopupElement: HTMLElement | undefined;
   defaultExtent = fromLonLat([-74.2853199, 40.7910592]).concat(fromLonLat([-74.0617852, 40.6733126])) as [number, number, number, number];
-  leftPaneToggle: MyControls.LeftPane | undefined;
   drawInteraction: Draw | undefined;
   pointerTooltip: Overlay = new Overlay({});
   selectHover: Select = new Select();
@@ -47,11 +41,9 @@ export class MapViewComponent implements OnInit, AfterViewInit {
     this.instance = new Map({
       layers: [],
       interactions: defaults({ pinchRotate: false })
-        .extend(
-          // allow mousewheel click to pan map
-          // tslint:disable-next-line: no-string-literal
-          [
-            new DragPan({ condition: e => (e.originalEvent['which'] === 2) }),
+        .extend([
+          // allow mousewheel to pan map
+            new DragPan({ condition: e => (e.originalEvent.which === 2) }),
             this.selectHover = new Select({
               condition: (e) => pointerMove(e) && this.isCanvasCondition(e),
               hitTolerance: 10,
@@ -82,7 +74,6 @@ export class MapViewComponent implements OnInit, AfterViewInit {
       target: this.host.nativeElement.firstElementChild,
       view: new View({
         center: fromLonLat([-74.1723667, 40.735657]),
-        constrainRotation: undefined,
         enableRotation: false,
         constrainResolution: true,
         resolution: 19.10925707126831,
@@ -94,7 +85,7 @@ export class MapViewComponent implements OnInit, AfterViewInit {
         ]
       })
     });
-    this.instance.on('pointermove', (e) => {
+    this.instance.on('pointermove', (e: MapBrowserEvent<any>) => {
       if (this.isCanvasCondition(e) === false || e.dragging || this.drawInteraction?.getActive()) {
         this.pointerTooltip.setPosition(undefined);
         this.pointerPopupElement!.innerHTML = '';
@@ -117,13 +108,9 @@ export class MapViewComponent implements OnInit, AfterViewInit {
         ),
         complete: () => console.info('Layers Loaded')
     });
-    // this.instance.on(['pointermove','singleclick'], (e: any) => this.handleMapAction(e));
     this.instance.getInteractions().on(['add','remove'], (e: any) => {
-      if (e.element instanceof Draw) {
-        this.drawInteraction = e.type === 'add' ?  e.element : undefined;
-      }
+      if (e.element instanceof Draw) this.drawInteraction = e.type === 'add' ?  e.element : undefined;
     });
-    this.instance.updateSize();
+    setTimeout(() => {this.instance.updateSize();},1000);
   }
-  ngAfterViewInit(): void { setTimeout(() => { this.instance.updateSize(); }, 500); }
 }

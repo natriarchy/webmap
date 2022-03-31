@@ -23,20 +23,15 @@ export class ZoomExtentGroup extends Control {
     });
     this.set('name', this.name);
     this.defaultExtent = options.defaultExtent;
-    this.buttonGrp = document.createElement('div');
-    this.buttonGrp.className = 'control-grp zoom-extent-grp';
+    this.buttonGrp = createElementWith(false, 'div', {class: 'control-grp zoom-extent-grp'});
     this.buttonDetails.forEach(btn => {
       const newBtn = createElementWith(false, 'button', {
         title: btn.btnTitle,
-        class: 'control-button',
+        class: 'webmap-btn ctrl grouped',
         'aria-label': btn.btnAriaLabel,
-        innerHTML: generatePointSVG(btn.btnIcon).outerHTML
+        innerHTML: generatePointSVG(btn.btnIcon).outerHTML,
+        onclick: this.handleClick.bind(this)
       });
-      newBtn.addEventListener(
-        'click',
-        this.handleClick.bind(this),
-        false
-      );
       this.buttonGrp.appendChild(newBtn);
     });
     this.element.appendChild(this.buttonGrp);

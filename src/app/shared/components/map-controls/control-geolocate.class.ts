@@ -35,7 +35,7 @@ export class Geolocate extends Control {
     });
     const newBtn = createElementWith(false, 'button', {
       title: 'Find My Location',
-      class: 'control-button geolocate',
+      class: 'webmap-btn ctrl geolocate',
       'aria-label': 'Circle with a Dot, Use to Find Current Location on Map',
       innerHTML: generatePointSVG('geo-alt-fill').outerHTML
     });

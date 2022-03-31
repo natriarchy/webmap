@@ -32,7 +32,7 @@ export class BasemapToggle extends Control {
     this.basemapType = options.defaultBasemap || 'Streets';
     const ctrlBtn = createElementWith(false, 'button', {
       title: 'Set Basemap',
-      class: 'control-button basemap-toggle',
+      class: 'webmap-btn ctrl basemap-toggle',
       'aria-label': 'Map Icon, Use to Change Basemap Type',
       innerHTML: generatePointSVG('map-fill').outerHTML
     });

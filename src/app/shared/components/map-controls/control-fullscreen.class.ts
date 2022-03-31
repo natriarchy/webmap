@@ -25,7 +25,7 @@ export class Fullscreen extends Control {
     this.set('name', this.name);
     this.ctrlBtn = createElementWith(false, 'button', {
       title: 'Toggle Full Screen',
-      class: 'control-button fullscreen-toggle',
+      class: 'webmap-btn ctrl fullscreen-toggle',
       'aria-label': 'Toggle Full Screen',
       innerHTML: generatePointSVG('fullscreen').outerHTML
     });

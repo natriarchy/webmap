@@ -1,5 +1,5 @@
 import { Control } from 'ol/control';
-import { generatePointSVG } from '../../utils/fns-utility';
+import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Search extends Control {
   name = 'search';
@@ -39,41 +39,31 @@ export class Search extends Control {
   constructor(options: { parentContainer: HTMLElement }) {
     super({ element: options.parentContainer });
     this.set('name', this.name);
-    this.searchElement = document.createElement('div');
     this.searchIcon = generatePointSVG('search', false, {class:'search-icon'}) as SVGSVGElement;
-    this.searchInput = document.createElement('input');
-    this.searchClearBtn = document.createElement('button');
-
-    this.searchElement.className = 'search-element';
-
-    Object.assign(this.searchInput, {
+    this.searchInput = createElementWith(false, 'input', {
       type: 'text',
       id: 'search-input',
       name: 'search-input',
-      placeholder: 'Search Any Address'
+      placeholder: 'Search Any Address',
+      oninput: this.handleInput.bind(this),
+      onkeydown: this.handleKeyDown.bind(this)
     });
-    this.searchInput.addEventListener('input', this.handleInput.bind(this), false);
-    this.searchInput.addEventListener('keydown', this.handleKeyDown.bind(this), false);
-
-    Object.assign(this.searchClearBtn, {
+    this.searchClearBtn = createElementWith(false, 'button', {
       type: 'button',
       title: 'Clear Input',
       id: 'search-clear',
-      className: 'control-button clear-search',
-      onclick: () => this.clearInput(),
+      class: 'webmap-btn ctrl',
+      onclick: this.clearInput.bind(this),
       innerHTML: generatePointSVG('x',false).outerHTML
     });
-
-    [this.searchIcon, this.searchInput, this.searchClearBtn].forEach(el => {
-      this.searchElement.appendChild(el);
+    this.searchElement = createElementWith(false, 'div', {
+      class: 'search-element',
+      children: [this.searchIcon, this.searchInput, this.searchClearBtn]
     });
 
     this.element.appendChild(this.searchElement);
 
-    if (this.element.firstChild != this.searchElement) {
-      const hrEl = document.createElement('hr');
-      this.element.insertBefore(hrEl, this.searchElement);
-    };
+    if (this.element.firstChild != this.searchElement) this.element.insertBefore(document.createElement('hr'), this.searchElement);
   }
   handleInput(e: any): void | boolean {
     const val = e.target.value;
@@ -84,29 +74,27 @@ export class Search extends Control {
     }
     this.searchClearBtn.style.display = 'flex';
     this.currentFocus = -1;
-    const results = document.createElement("div");
-    results.setAttribute("id", e.target.id + "-results");
-    results.setAttribute("class", "autocomplete-items");
+    const results = createElementWith(false, 'div', {id: e.target.id + "-results", class: 'autocomplete-items'});
     e.target.parentNode.appendChild(results);
     for (let i = 0; i < this.searchData.length; i++) {
       if (this.searchData[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-        const newDiv = document.createElement("div");
-        newDiv.innerHTML = "<strong>" + this.searchData[i].substr(0, val.length) + "</strong>";
-        newDiv.innerHTML += this.searchData[i].substr(val.length);
-        newDiv.innerHTML += "<input type='hidden' value='" + this.searchData[i] + "'>";
-        newDiv.addEventListener('click', evt => {
+        const newDiv = createElementWith(false, 'div', {
+          innerHTML: '<strong>' + this.searchData[i].substr(0, val.length) + '</strong>',
+          onclick:  (evt: MouseEvent) => {
             this.searchInput.value = newDiv.getElementsByTagName('input')[0].value;
             this.closeAllLists();
+          }
         });
+        newDiv.innerHTML += this.searchData[i].substr(val.length);
+        newDiv.innerHTML += "<input type='hidden' value='" + this.searchData[i] + "'>";
         results.appendChild(newDiv);
       }
     }
     if (results.childElementCount < 1) {
-      const emptyResults = document.createElement('div');
-      Object.assign(emptyResults, {
+      const emptyResults = createElementWith(false, 'div', {
         innerText: 'No Results',
         className: 'empty-results',
-        onclick: () => this.clearInput()
+        onclick: this.clearInput.bind(this)
       });
       results.appendChild(emptyResults);
     }

@@ -25,7 +25,7 @@ export class LeftPane extends Control {
     this.toggleStatus = options.toggleStatus ? options.toggleStatus : false;
     this.toggleBtn = createElementWith(false, 'button', {
       title: 'Toggle ' + options.paneName,
-      class: `control-button ${options.paneName.toLowerCase()}-toggle`,
+      class: `webmap-btn ctrl ${options.paneName.toLowerCase()}-toggle`,
       innerHTML: generatePointSVG(this.toggleIcons(this.toggleStatus)).outerHTML
     });
     this.toggleBtn.addEventListener(
@@ -63,7 +63,7 @@ export class LeftPane extends Control {
         value: section
       });
       const sectionRadioLabel = (section: string) => createElementWith(false, 'label', {
-        class: 'pane-section-label icon-btn',
+        class: 'pane-section-label webmap-btn',
         for: 'pane-radio-' + section,
         innerHTML: section === 'layersmanager' ? generatePointSVG('layers').outerHTML : generatePointSVG(section as BSIconOptions).outerHTML
       });
