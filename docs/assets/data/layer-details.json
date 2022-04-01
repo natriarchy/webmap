@@ -6,6 +6,7 @@
         "initVisible": true,
         "srcUrl": "https://{a-d}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
         "srcAttribution": ["<span><a href='http://www.openstreetmap.org/copyright'>© OpenStreetMap</a> contributors, <a href='https://carto.com/attribution'>© CARTO</a></span>"],
+        "srcDescription": "",
         "styleDetail": {
             "type": "no style"
         }
@@ -18,6 +19,7 @@
         "initVisible": true,
         "srcUrl": "assets/data/transit_njt.geojson",
         "srcAttribution": [],
+        "srcDescription": "",
         "styleDetail": {
             "type": "ramp-special",
             "keyProp": "STATION",
@@ -51,6 +53,7 @@
         "initVisible": true,
         "srcUrl": "assets/data/transit_nlr.geojson",
         "srcAttribution": [],
+        "srcDescription": "",
         "styleDetail": {
             "type": "basic",
             "keyProp": "STATION",
@@ -75,6 +78,7 @@
         "initVisible": false,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/arcgis/rest/services/Newark_Bus_Stops_by_Service/FeatureServer/0/query?where=OBJECTID+IS+NOT+NULL+AND+Weekday_Headway_Minutes+<=+10&outFields=\"StopID_NJT,StopID_GTFS,StopID_Location,Weekday_Lines,Weekend_Lines\"&returnGeometry=true&f=geojson",
         "srcAttribution": [],
+        "srcDescription": "",
         "styleDetail": {
             "type": "basic",
             "keyProp": "StopID_Location",
@@ -92,6 +96,7 @@
         "initVisible": false,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/arcgis/rest/services/Newark_Bus_Stops_by_Service/FeatureServer/0/query?where=OBJECTID+IS+NOT+NULL+AND+Weekday_Headway_Minutes+>+10&outFields=\"StopID_NJT,StopID_GTFS,StopID_Location,Weekday_Lines,Weekend_Lines\"&returnGeometry=true&f=geojson",
         "srcAttribution": [],
+        "srcDescription": "",
         "styleDetail": {
             "type": "basic",
             "keyProp": "StopID_Location",
@@ -111,6 +116,7 @@
         "initVisible": true,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Zoning_Districts/FeatureServer/0/query?where=%22OBJECTID%22%20is%20not%20null&outFields=%22ZONING,RDV_PLAN%22&returnGeometry=true&f=geojson",
         "srcAttribution": [],
+        "srcDescription": "",
         "styleDetail": {
             "type": "ramp-special",
             "keyProp": "ZONING",
@@ -236,6 +242,7 @@
         "initVisible": true,
         "srcUrl": "https://vectortileservices1.arcgis.com/WAUuvHqqP3le2PMh/arcgis/rest/services/Newark_Parcels_with_Ownership/VectorTileServer/tile/{z}/{y}/{x}.pbf",
         "srcAttribution": ["<a href='https://njgin.nj.gov/'>NJ GIN</a>", "City of Newark Office of Planning & Zoning"],
+        "srcDescription": "City of Newark Parcel boundaries, current as of the July 2021 release from the Tax Assessors' office. Incorporates information from State MODIV tax data",
         "styleDetail": {
             "type": "ramp-special",
             "keyProp": "ZONING",
@@ -363,6 +370,7 @@
         "initVisible": false,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Historic_Assets/FeatureServer/1/query?where=\"OBJECTID\" is not null AND \"STATUS\"='LISTED'&outFields=\"ABR_NAME\"&returnGeometry=true&f=geojson",
         "srcAttribution": ["<a href='https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-historic-districts'>NewGIN: Newark Historic Districts</a>"],
+        "srcDescription": "",
         "styleDetail": {
             "type": "basic",
             "keyProp": "ABR_NAME",
@@ -377,6 +385,7 @@
         "lyrZIndex": 5,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Historic_Assets/FeatureServer/0/query?where=\"OBJECTID\" is not null&outFields=\"bldgdesc\"&returnGeometry=true&f=geojson",
         "srcAttribution": [],
+        "srcDescription": "",
         "styleDetail": {
             "type": "basic",
             "keyProp": "bldgdesc",
@@ -391,6 +400,7 @@
         "lyrZIndex": 4,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Redevelopment_Plan_Areas/FeatureServer/0/query?where=\"OBJECTID\" is not null&outFields=\"ShortName,Name\"&returnGeometry=true&f=geojson",
         "srcAttribution": ["<a href='https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-redevelopment-plan-areas'>NewGIN: Newark Redevelopment Plan Areas</a>"],
+        "srcDescription": "",
         "styleDetail": {
             "type": "basic",
             "keyProp": "ShortName",
@@ -406,6 +416,7 @@
         "lyrZIndex": 4,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Designated_Truck_Routes/FeatureServer/0/query?where=\"OBJECTID\" is not null&outFields=\"PRIME_NAME,TruckRteDesig\"&returnGeometry=true&f=geojson",
         "srcAttribution": [],
+        "srcDescription": "",
         "styleDetail": {
             "type": "ramp-special",
             "keyProp": "TruckRteDesig",
@@ -425,6 +436,7 @@
         "lyrZIndex": 4,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Economic_Development/FeatureServer/1/query?where=\"OBJECTID\" is not null&outFields=\"NAMELSAD\"&returnGeometry=true&f=geojson",
         "srcAttribution": ["<a href='https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-opportunity-zones'>NewGIN: Newark Opportunity Zones</a>"],
+        "srcDescription": "",
         "styleDetail": {
             "type": "basic",
             "keyProp": "NAMELSAD",
@@ -443,6 +455,7 @@
         "lyrZIndex": 4,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Economic_Development/FeatureServer/2/query?where=\"OBJECTID\" is not null&outFields=\"UEZ_NAME\"&returnGeometry=true&f=geojson",
         "srcAttribution": ["<a href='https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-urban-enterprise-zone'>NewGIN: Newark Urban Enterprise Zone</a>"],
+        "srcDescription": "",
         "styleDetail": {
             "type": "basic",
             "keyProp": "NAMELSAD",
@@ -457,6 +470,7 @@
         "lyrZIndex": 5,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Census_Geographies/FeatureServer/2/query?where=\"OBJECTID\" is not null&outFields=\"NAMELSAD\"&returnGeometry=true&f=geojson",
         "srcAttribution": ["<a href='https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/8'>US Census TIGER: Census Tracts</a>"],
+        "srcDescription": "City of Newark Census Tracts, as delineated by the 2020 release of US Census TIGER Boundaries",
         "styleDetail": {
             "type": "boundary",
             "keyProp": "NAMELSAD",
@@ -477,6 +491,7 @@
         "lyrZIndex": 5,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Census_Geographies/FeatureServer/3/query?where=\"OBJECTID\" is not null&outFields=\"ZCTA5CE10\"&returnGeometry=true&f=geojson",
         "srcAttribution": ["<a href='https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/2'>US Census TIGER: 2010 Zip Code Tabulation Areas</a>"],
+        "srcDescription": "City of Newark Zipcodes Tabulation Areas, as delineated by the 2010 release of US Census TIGER Boundaries.",
         "styleDetail": {
             "type": "boundary",
             "keyProp": "ZCTA5CE10",
@@ -497,6 +512,7 @@
         "lyrZIndex": 5,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Geographies/FeatureServer/0/query?where=\"OBJECTID\" is not null&outFields=\"name\"&returnGeometry=true&f=geojson",
         "srcAttribution": ["<a href='https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-neighborhoods'>NewGIN: Newark Neighborhoods</a>"],
+        "srcDescription": "City of Newark Neighborhods, as used by Newark Planning & Zoning Office and codified in the 2015 Zoning and Land Use Regulations.",
         "styleDetail": {
             "type": "boundary",
             "keyProp": "name",
@@ -517,6 +533,7 @@
         "lyrZIndex": 5,
         "srcUrl": "https://services1.arcgis.com/WAUuvHqqP3le2PMh/ArcGIS/rest/services/Newark_Geographies/FeatureServer/1/query?where=\"OBJECTID\" is not null&outFields=\"WARD_NAME\"&returnGeometry=true&f=geojson",
         "srcAttribution": ["<a href='https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-wards'>NewGIN: Newark Wards</a>"],
+        "srcDescription": "City of Newark Ward Boundaries as delineated in 2012, the last census redistricting. Boundaries drawn to reflect similar similar population totals amongst the five wards.",
         "styleDetail": {
             "type": "boundary",
             "keyProp": "WARD_NAME",

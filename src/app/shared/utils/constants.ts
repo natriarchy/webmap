@@ -147,3 +147,38 @@ export const generalColorRamps = {
   // ArcGIS Low Satch
   light: ["#9f8eed", "#e0c9af", "#b8f5e7", "#e0ccff", "#ffe3d6", "#e8add4", "#bac29c", "#7dbdfa", "#fff6cc", "#e88b9b"]
 };
+
+export const propFields: {[group: string]: Array<{alias: string; field: string;}>} = {
+  'ID': [
+    {alias: 'Block-Lot', field: 'LOT_BLOCK_LOT'},
+    {alias: 'Primary Parcel', field: 'MOD4_BLOCK_LOT'},
+    {alias: 'Legal Address', field: 'PROPLOC'},
+    {alias: 'Related Lots', field: 'ADDLOTS'}
+  ],
+  'Designations': [
+    {alias: 'Zoning Designation', field: 'ZONING'},
+    {alias: 'Redevelopment Plan', field: 'RDV_PLAN'},
+    {alias: 'Redevelopment Zoning', field: 'RDV_CODE'},
+    {alias: 'Historic District', field: 'HIST_DIST'},
+    {alias: 'Historic Landmark', field: 'HIST_PROP'},
+    {alias: 'Opportunity Zone', field: 'OPPO_ZONE'},
+    {alias: 'Within UEZ', field: 'IN_UEZ'},
+    {alias: 'Property Use', field: 'PROPCLASS'},
+    {alias: 'Bldg. Description', field: 'BUILDDESC'},
+    {alias: 'Land Description', field: 'LANDDESC'},
+    {alias: 'Acreage', field: 'ACREAGE'},
+    {alias: 'Ward', field: 'CITYWARD'},
+    {alias: 'Commercial Type', field: 'CLASS4TYPE'}
+  ],
+  'Tax Info': [
+    {alias: 'Owner Name', field: 'OWNERSNAME'},
+    {alias: 'Tax Map Page', field: 'TAXMAP'},
+    {alias: 'Assessment - Land', field: 'LANDVALUE'},
+    {alias: 'Assessment - Improvements', field: 'IMPRVALUE'},
+    {alias: 'Assessment - Total', field: 'NETVALUE'},
+    {alias: 'Last Year Tax', field: 'LSTYRTAX'},
+    {alias: 'Old Block No.', field: 'OLDBLOCKNO'},
+    {alias: 'Old Lot No.', field: 'OLDLOTNO'},
+    {alias: 'Old Qual Code', field: 'OLDQUALCODE'}
+  ]
+};

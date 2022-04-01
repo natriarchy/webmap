@@ -1,17 +1,12 @@
+import { Feature } from 'ol';
 import { FeatureLike } from 'ol/Feature';
-import { MVT as MVTFormat, GeoJSON } from 'ol/format';
-import {
-  Layer,
-  Tile as TileLayer,
-  Vector as VectorLayer,
-  VectorTile as VectorTileLayer
-} from 'ol/layer';
+import { GeoJSON, MVT as MVTFormat } from 'ol/format';
+import { Layer, Tile as TileLayer, Vector as VectorLayer, VectorTile as VectorTileLayer } from 'ol/layer';
 import { Vector as VectorSource, VectorTile as VectorTileSource, XYZ } from 'ol/source';
 import { Fill, Icon, Stroke, Style, Text } from 'ol/style';
+import { BSIconOptions, generalColorRamps } from './constants';
+import { convertToHexOpacity, generatePointSVG, getContrastYIQ } from './fns-utility';
 import { ClassObjectBase, StyleDetailObj } from '../models';
-import { convertToHexOpacity, getContrastYIQ, generatePointSVG } from './fns-utility';
-import { BSIconOptions, generalColorRamps } from "./constants";
-import { Feature } from "ol";
 
 export function makeLayer(
     lyrGroup: string,
@@ -75,22 +70,21 @@ export function makeLayer(
   return newLyr;
 };
 
-function basicStyleFunction(
+export function basicStyleFunction(
     feature: FeatureLike,
     resolution: number,
     styleDetail: StyleDetailObj,
     lyr: {name: string; type: 'TileLayer' | 'VectorTileLayer' | 'VectorLayer'}
   ): Style | Array<Style> {
     const featType = feature.getGeometry()?.getType();
-    const featValue: string = ['ramp-basic','ramp-special'].includes(styleDetail.type) ? feature.get(styleDetail.keyProp!) : undefined;
+    const featValue: string | undefined = ['ramp-basic','ramp-special'].includes(styleDetail.type)
+      ? feature.get(styleDetail.keyProp!)
+      : undefined;
     const baseClassObj: ClassObjectBase = Object.keys(styleDetail.classObject!).length > 1
       ? styleDetail.classObject![featValue ? featValue : 'Other']
       : Object.values(styleDetail.classObject!)[0];
     let newStyleObj: Style;
-    if (lyr.type === 'VectorLayer') {
-      const featID = feature.get(styleDetail.keyProp!) ? feature.get(styleDetail.keyProp!) : 'N/A';
-      (feature as Feature<any>).setId(featID);
-    };
+    if (lyr.type === 'VectorLayer') feature.get(styleDetail.keyProp!) ? (feature as Feature<any>).setId(feature.get(styleDetail.keyProp!)) : (feature as Feature<any>).setId('N/A');
     if (featType === 'Point' && styleDetail.type !== 'ramp-special') {
       newStyleObj = new Style({
         image: styleDetail.icon ? generateIconStyle(styleDetail.icon.src ? styleDetail.icon.src : 'geo-alt-fill', styleDetail.icon.size, (styleDetail.icon.color || baseClassObj.fill)) : undefined
@@ -156,21 +150,22 @@ export function makeTextStyle(
   });
 };
 
-function stringDivider(str: string, width: number, spaceReplacer: any): string {
+export const stringDivider = (str: string, width: number, spaceReplacer: any): string => {
   if (str.length > width) {
       let p = width;
       while (p > 0 && (str[p] !== ' ' && str[p] !== '-')) { p--; }
       if (p > 0) {
-          const left = (str.substring(p, p + 1) === '-') ? str.substring(0, p + 1) : str.substring(0, p);
-          const right = str.substring(p + 1);
+          const left = (str.slice(p, p + 1) === '-') ? str.slice(0, p + 1) : str.slice(0, p);
+          const right = str.slice(p + 1);
 
           return `${left}${spaceReplacer}${stringDivider(right, width, spaceReplacer)}`;
       }
   }
 
   return str.replace(/(Redevelopment Plan|District Plan|Census Tract)/gi, '')
-      .replace(/\w+/g, txt => txt.charAt(0)
-          .toUpperCase() + txt.slice(1)
+      .replace(
+        /\w+/g,
+        txt => txt.charAt(0).toUpperCase() + txt.slice(1)
       );
 };
 

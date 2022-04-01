@@ -36,7 +36,8 @@ export class Search extends Control {
     "What does HTML stands for?",
     "What does CSS stands for?"
   ];
-  constructor(options: { parentContainer: HTMLElement }) {
+  // set search source to default to just an address lookup, else use a clasname of a layer to search
+  constructor(options: { parentContainer: HTMLElement, searchSource?: Array<{source: string, name: string}> }) {
     super({ element: options.parentContainer });
     this.set('name', this.name);
     this.searchIcon = generatePointSVG('search', false, {class:'search-icon'}) as SVGSVGElement;
@@ -110,6 +111,9 @@ export class Search extends Control {
       evt.preventDefault();
       if (this.currentFocus > -1 && resultsEls) resultsEls[this.currentFocus].click();
     }
+  }
+  setUpDataSource(sources?: Array<string>): void {
+
   }
   /* classify an item as "active" */
   addActive(resultsEls: any): void | false {

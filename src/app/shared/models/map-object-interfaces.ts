@@ -1,6 +1,57 @@
 interface IObject {
   [key: string]: string | number | undefined;
 }
+export interface ClassObjectBase {
+  fill: string;
+  label: string;
+  iconSrc?: string;
+  strokeColor?: string;
+  strokeType?:'solid' | 'dashed';
+}
+export interface StyleDetailObj {
+  type: 'basic' | 'boundary' | 'ramp-basic' | 'ramp-special' | 'no style';
+  keyProp?: string;
+  idProp?: string;
+  classObject?: {[key: string]: ClassObjectBase};
+  labels?: {size: 'x-small' |'small' | 'normal' | 'large' | 'x-large'; property: string; fill?: string; strokeColor?: string; offset?: [number, number]; minResolution?: number; maxResolution?: number};
+  icon?: {size: 'x-small' | 'small' | 'normal' | 'large' | 'x-large'; src?: string; description?: string; color?: string; offset?: [number, number]; };
+  limits?: {minResolution?: number; maxResolution?: number; minZoom?: number; maxZoom?: number;};
+};
+export interface LayerDetailObj {
+  lyrGroup: string;
+  lyrName: string;
+  lyrType: 'TileLayer' | 'VectorTileLayer' | 'VectorLayer';
+  lyrZIndex: number;
+  initVisible: boolean;
+  srcUrl: string;
+  srcAttribution: Array<string>;
+  srcDescription: string;
+  styleDetail: StyleDetailObj;
+}
+export interface ArcPJSONResponse<T extends 'AddressPts'|'PropInfo'> {
+  objectIdFieldName: 'FID' | string;
+  uniqueIdField: { name: 'FID' | string; isSystemMaintained: boolean; };
+  globalIdFieldName: any;
+  geometryType: string;
+  spatialReference: { wkid: 102100 | number; latestWkid: 3857 | number; };
+  fields: Array<{
+    name: string;
+    type: string,
+    alias: string;
+    sqlType: string;
+    domain: any;
+    defaultValue: any;
+  }>;
+  features: Array<T extends 'AddressPts' ? ArcAddressPt : ArcPropInfo>;
+}
+export interface ArcGeoJSONResponse<T extends 'AddressPts'|'PropInfo'> {
+  features: Array<{
+    geometry: any;
+    properties: T extends 'AddressPts' ? ArcAddressPt['attributes'] : ArcPropInfo;
+    type: string;
+  }>;
+  type: string;
+}
 export interface SearchFeature {
   _id: {
     $oid: string;
@@ -26,28 +77,6 @@ export interface SearchResult {
     exceededTransferLimit: boolean;
   };
   features: Array<SearchFeature>;
-}
-export interface ArcFeature {
-  attributes: {
-    PROPLOC: string;
-    MOD4_BLOCK_LOT: string;
-    ADDLOTS?: string;
-    ZONING?: string;
-    PROPCLASS?: string;
-    BUILDDESC?: string;
-    RDV_PLAN?: string;
-    RDV_CODE?: string;
-    HIST_DIST?: string;
-    HIST_PROP?: string;
-    IN_UEZ?: number;
-    OPPO_ZONE?: string;
-    LANDVALUE?: number;
-    IMPRVALUE?: number;
-    CITYWARD?: string;
-    ACREAGE?: number;
-    LSTYRTAX?: number;
-  };
-  centroid: { x: number; y: number; };
 }
 export interface ArcPropInfo extends IObject {
   MAPID?: string;
@@ -130,101 +159,26 @@ export interface ArcPropInfo extends IObject {
   Shape__Area?: number;
   Shape__Length?: number;
 }
-export interface ArcPropResponse {
-  objectIdFieldName: 'FID' | string;
-  uniqueIdField: { name: 'FID' | string; isSystemMaintained: boolean; };
-  globalIdFieldName: any;
-  geometryType: 'esriGeometryPolygon';
-  spatialReference: { wkid: 102100 | number; latestWkid: 3857 | number; };
-  fields: Array<{
-    name: string;
-    type: 'esriFieldTypeDouble',
-    alias: string;
-    sqlType: string;
-    domain: any;
-    defaultValue: any;
-  }>;
-  features: Array<ArcFeature>;
+
+type InitVals = {
+  "boolean": boolean;
+  "options": Array<{label: string; val: any}>;
+  "action": never;
 }
-export interface ArcJSONResponse {
-  objectIdFieldName: 'FID' | string;
-  uniqueIdField: { name: 'FID' | string; isSystemMaintained: boolean; };
-  globalIdFieldName: any;
-  geometryType: string;
-  spatialReference: { wkid: 102100 | number; latestWkid: 3857 | number; };
-  fields: Array<{
-    name: string;
-    type: string,
-    alias: string;
-    sqlType: string;
-    domain: any;
-    defaultValue: any;
-  }>;
-  features: Array<ArcAddressPt>;
-}
-export interface ArcGeoJSONResponse {
-  features: Array<{
-    geometry: any;
-    properties: ArcAddressPt['attributes'];
-    type: string;
-  }>;
-  type: string;
-}
-export interface ArcGeoJSONPropResponse {
-  features: Array<{
-    geometry: any;
-    properties: ArcPropInfo;
-    type: string;
-  }>;
-  type: string;
-}
-export interface LayerInfoPaneContent {
-  TYPE: string;
-  NAME: string;
-  DESCRIPTION: string;
-  IMGSRC?: string;
-  USES?: Array<FirebaseZoneUse>;
-  BUILDING_TYPES?: Array<string>;
-  TABLE?: ArcPropInfo;
-  NOTES?: string;
-}
-export interface FirebaseZoneUse {
-  USE: string;
-  USE_TYPE: 'Principal' | 'Accessory';
-  ALLOWANCE: 'P' | 'C' | string;
-  NOTES?: string;
-}
-export interface PlanDetails {
-  ID: string;
-  PLAN: string;
-  DATE: string;
-  DOCUMENTS: Array<{ name: string; link: string }>;
-  WARDS: Array<string>;
-  DESCRIPTION: string;
-}
-export interface ClassObjectBase {
-  fill: string;
+
+export type SettingType<T extends keyof InitVals, E extends boolean> = {
+  type: T;
   label: string;
-  iconSrc?: string;
-  strokeColor?: string;
-  strokeType?:'solid' | 'dashed';
+} & (
+  T extends 'action' ? {} : { initValue: InitVals[T]; }
+) & (
+  E extends true ? { fn?: () => any; } : {}
+);
+
+export interface SettingsOptions<E extends boolean> {
+  [setting: string]: SettingType<'action', E> | SettingType<'boolean', E> | SettingType<'options', E>;
 }
-export interface StyleDetailObj {
-  type: 'basic' | 'boundary' | 'ramp-basic' | 'ramp-special' | 'no style';
-  keyProp?: string;
-  idProp?: string;
-  classObject?: {[key: string]: ClassObjectBase};
-  labels?: {size: 'x-small' |'small' | 'normal' | 'large' | 'x-large'; property: string; fill?: string; strokeColor?: string; offset?: [number, number]; minResolution?: number; maxResolution?: number};
-  icon?: {size: 'x-small' | 'small' | 'normal' | 'large' | 'x-large'; src?: string; description?: string; color?: string; offset?: [number, number]; };
-  limits?: {minResolution?: number; maxResolution?: number; minZoom?: number; maxZoom?: number;};
-};
-export interface LayerDetailObj {
-  lyrGroup: string;
-  lyrName: string;
-  lyrType: 'TileLayer' | 'VectorTileLayer' | 'VectorLayer';
-  lyrZIndex: number;
-  initVisible: boolean;
-  srcUrl: string;
-  srcAttribution: Array<string>;
-  styleDetail: StyleDetailObj;
+export interface SettingsOptionsMaster extends SettingsOptions<true> {
+  'Allow Hover': SettingType<'boolean', true>;
+  'Show Coordinates': SettingType<'boolean', true>;
 }

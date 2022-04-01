@@ -8,7 +8,7 @@ export class LeftPane extends Control {
   paneElement: HTMLElement;
   toggleStatus = false;
   toggleIcons = (paneOpen: boolean):BSIconOptions => paneOpen ? 'arrow-left-square-fill' : 'list';
-  paneSectionsElement: HTMLElement;
+  paneSections: HTMLElement;
   activeSectionsControls: Array<string> = ['layersmanager','settings'];
   constructor(
     options: {
@@ -17,34 +17,28 @@ export class LeftPane extends Control {
       paneElement: HTMLElement,
       toggleStatus?: boolean
     }) {
-    super({
-      element: options.toggleBtnContainer
-    });
+    super({ element: options.toggleBtnContainer });
     // set up toggle button
     this.paneElement = options.paneElement;
     this.toggleStatus = options.toggleStatus ? options.toggleStatus : false;
     this.toggleBtn = createElementWith(false, 'button', {
       title: 'Toggle ' + options.paneName,
       class: `webmap-btn ctrl ${options.paneName.toLowerCase()}-toggle`,
-      innerHTML: generatePointSVG(this.toggleIcons(this.toggleStatus)).outerHTML
+      innerHTML: generatePointSVG(this.toggleIcons(this.toggleStatus)).outerHTML,
+      onclick: this.handleToggle.bind(this)
     });
-    this.toggleBtn.addEventListener(
-      'click',
-      this.handleToggle.bind(this),
-      false
-    );
     this.element.appendChild(this.toggleBtn);
 
-    this.paneSectionsElement = createElementWith(false, 'form', {
+    this.paneSections = createElementWith(false, 'form', {
       id: 'pane-sections',
       onchange: (e: any) => {
-        this.paneSectionsElement.parentElement!.querySelectorAll('.pane-section-container').forEach(i => {
+        this.paneSections.parentElement!.querySelectorAll('.pane-section-container').forEach(i => {
           i.classList.contains(e.target.value) ? i.classList.add('active') : i.classList.remove('active')
         });
         document.getElementById('pane-section-title')!.innerText = e.target.value;
       }
     });
-    this.paneElement.prepend(this.paneSectionsElement);
+    this.paneElement.prepend(this.paneSections);
     setTimeout(this.intializePane.bind(this), 1000, this.getMap());
   }
   intializePane(map?: Map): void {

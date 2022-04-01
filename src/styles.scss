@@ -72,7 +72,7 @@ body {
 }
 
 .tippy-box[data-theme~='map-light'] {
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    box-shadow: 0px 2px 8px -3px black;
     border-radius: 0 6px 6px 6px;
     background: white;
 }
@@ -131,11 +131,10 @@ body {
         color: black;
         background: white;
         border: none;
-        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        box-shadow: 0px 2px 8px -3px black;
         margin-bottom: 0.55rem;
     }
     &.grouped {
-        background: none !important;
         box-shadow: none !important;
         margin: 0px;
         &:not(:first-of-type):not(:last-of-type) {
@@ -179,10 +178,9 @@ body {
     overflow: hidden;
     flex-direction: column;
     width: 2.85rem;
-    background: white;
     overflow: hidden;
     border-radius: 7px;
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0px 2px 8px -3px black;
     &:not(:last-child) {
         margin-bottom: 0.55rem;
     }
@@ -215,7 +213,7 @@ body {
     position: absolute;
     font-size: 1rem;
     width: calc(300px + 3.35rem);
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0px 2px 8px -3px black;
     border-radius: 7px;
     height: 2.85rem;
     overflow: hidden;
@@ -255,7 +253,7 @@ body {
     background: slategray;
     z-index: 1;
     border-radius: 7px;
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    box-shadow: 0px 2px 8px -3px black;
     transition-property: width, flex, min-width, overflow, border-right;
     transition: 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
     @media only screen and (max-width: 576px) {
@@ -263,6 +261,7 @@ body {
     }
     .pane-section-container {
         display: none;
+        height: calc(100% - 6rem);
         width: calc(100% - 1.5rem);
         font-size: 1rem;
         margin: 0.75rem;
@@ -271,7 +270,6 @@ body {
         background: white;
         padding: 0.75rem;
         overflow-y: auto;
-        flex: 1 1 auto;
         &.active {
             display: flex;
             animation-name: movein;
@@ -292,14 +290,10 @@ body {
 @keyframes movein {
     0% {
         opacity: 0;
-        flex: 1 1 33%;
-        max-height: 33%;
         overflow-y: hidden;
     }
     100% {
         opacity: 1;
-        flex: 1 1 auto;
-        max-height: 100%;
         overflow-y: auto;
     }
 }
@@ -311,7 +305,8 @@ body {
     padding: 0 0 0.25rem 0;
     text-transform: uppercase;
     font-weight: lighter;
-    border-bottom: 1px dotted white;
+    border-bottom: 0.1rem dotted white;
+    line-height: 1.5rem;
 }
 
 #pane-sections {
@@ -319,7 +314,7 @@ body {
     flex-direction: row;
     overflow-x: auto;
     width: 100%;
-    min-height: 4.35rem;
+    height: 4.5rem;
     div.pane-section {
         color: white;
         -webkit-text-fill-color: white;
@@ -349,7 +344,7 @@ body {
     border-radius: 0px 8px 8px 8px;
     padding: 0.2rem;
     transform: translate(66%, 140%);
-    box-shadow: 0.5px 0.5px 3px rgba(0, 0, 0, 0.5);
+    box-shadow: 0px 2px 8px -4px black;
     .attribute-table {
         font-size: 0.85rem;
         width: 100%;
@@ -418,7 +413,7 @@ body {
     padding: 0.1rem 0.5rem;
     z-index: 10;
     background: white;
-    box-shadow: 1px 3px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 1px 3px 8px -4px black;
     border-radius: 0 0 7px 7px;
     border: 1.5px solid gray;
     border-top: none;

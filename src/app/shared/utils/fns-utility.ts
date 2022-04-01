@@ -6,11 +6,10 @@ import { BSIconOptions, svgPath } from "./constants";
  * @param {string} elementType - TagName of the Element you're generating
  * @param {Object} setAttributes - Object of Other Attributes you want to set
  **/
-export function createElementWith < T extends boolean, SVGType extends keyof SVGElementTagNameMap, HTMLType extends keyof HTMLElementTagNameMap > (
+export function createElementWith<T extends boolean, SVGType extends keyof SVGElementTagNameMap, HTMLType extends keyof HTMLElementTagNameMap> (
     svgNamespace: T,
     elementType: SVGType | HTMLType,
-    setAttributes: {
-        [key: string]: any }
+    setAttributes: { [key: string]: any }
 ): T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType] {
     const newElement = svgNamespace ? document.createElementNS(`http://www.w3.org/2000/${elementType}`, elementType) : document.createElement(elementType);
     Object.entries(setAttributes).forEach(i => {
