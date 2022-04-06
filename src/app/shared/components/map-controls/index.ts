@@ -3,7 +3,7 @@ export {Fullscreen} from './control-fullscreen.class';
 export {Geolocate} from './control-geolocate.class';
 export {LayersManager} from './control-layersmanager.class';
 export {Measure} from './control-measure.class';
-export {LeftPane} from './control-pane-left.class';
+export {LeftPaneMulti} from './control-pane-left.class';
 export {Search} from './control-search.class';
 export {Settings} from './control-settings.class';
 export {ZoomExtentGroup} from './control-zoom-extent.class';

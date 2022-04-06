@@ -77,7 +77,7 @@ body {
     background: white;
 }
 
-.tippy_dropdown_div {
+.tippy-dropdown-div {
     display: flex;
     flex-direction: column;
     button {
@@ -87,27 +87,15 @@ body {
         background: none;
         border: none;
         cursor: pointer;
-        &:first-of-type {
-            border-radius: 7px 7px 0 0;
-        }
-        &:last-of-type {
-            border-radius: 0 0 7px 7px;
-        }
+        border-radius: 0.3rem;
+        margin: 0 0.2rem;
         &:hover {
             background: rgb(240 240 250);
-            transition: background 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
         }
         &:active {
             color: grey;
             -webkit-text-fill-color: grey;
         }
-    }
-    hr {
-        margin: 0;
-        background: none;
-        padding: 0;
-        border: none;
-        border-top: 0.5px solid lightgray;
     }
 }
 
@@ -157,10 +145,19 @@ body {
         cursor: pointer;
     }
     &.dropdown-open {
-        -webkit-text-fill-color: white !important;
+        -webkit-text-fill-color: white;
         color: white;
         background: black;
         border-radius: 7px 0 0 7px;
+        &::after {
+            content: "";
+            position: absolute;
+            left: 100%;
+            height: 2.85rem;
+            width: 7px;
+            background: black;
+            box-shadow: 0px 2px 8px -3px black;
+        }
     }
     &:not(.no-interaction):hover {
         -webkit-text-fill-color: grey;
@@ -199,7 +196,7 @@ body {
     }
     &.pane-open {
         @media only screen and (min-width: 576px) {
-            left: calc(300px + 1.1rem);
+            left: calc(350px + 1.1rem);
             transition: left 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
         }
     }
@@ -212,7 +209,7 @@ body {
     top: 0.55rem;
     position: absolute;
     font-size: 1rem;
-    width: calc(300px + 3.35rem);
+    width: calc(350px + 3.35rem);
     box-shadow: 0px 2px 8px -3px black;
     border-radius: 7px;
     height: 2.85rem;
@@ -246,7 +243,7 @@ body {
     display: flex;
     flex-direction: column;
     position: fixed;
-    width: 300px;
+    width: 350px;
     left: 0.55rem;
     top: 3.95rem;
     height: calc(100vh - 6.5rem);
@@ -494,6 +491,7 @@ body {
         color: slategray;
     }
     input {
+        cursor: pointer;
         margin: 0 0.75rem;
     }
     &:hover {
@@ -515,6 +513,15 @@ body {
     }
 }
 
+input.hide-input,
+.hide-input input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    cursor: pointer;
+}
+
 .input-field-group {
     display: flex;
     flex: 1 1 auto;
@@ -522,13 +529,6 @@ body {
     margin: 0.15rem;
     &.full-width {
         flex: 1 1 100%;
-    }
-    &.hide-input input {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
-        cursor: pointer;
     }
     label:not(.webmap-btn) {
         cursor: pointer;
@@ -656,5 +656,7 @@ body {
         width: 0%;
         background: lightgray;
         border-radius: 1rem;
+        transform-origin: 0% 50%;
+        animation-timing-function: linear;
     }
 }

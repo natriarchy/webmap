@@ -26,7 +26,7 @@ export function openGoogleMaps(LAT: number, LONG: number): any {
 
 const truncate = (n: number): number => n > 0 ? Math.floor(n) : Math.ceil(n);
 
-function getDMS(dd: number, lonOrLat:'lat' | 'lon'): any {
+export function getDMS(dd: number, lonOrLat:'lat' | 'lon'): any {
   const hemisphere = /^[WE]|(?:lon)/i.test(lonOrLat)
       ? dd < 0
           ? 'W'
@@ -42,4 +42,8 @@ function getDMS(dd: number, lonOrLat:'lat' | 'lon'): any {
   const dmsArray = [degrees, minutes, seconds, hemisphere];
 
   return `${dmsArray[0]}°${dmsArray[1]}'${dmsArray[2]}"${dmsArray[3]}`;
+}
+export function formatDMS(lonlat: Array<number>): string {
+  const coords = lonlat.map((ll,i) => getDMS(ll, i === 0 ? 'lon' : 'lat'));
+  return coords.join(', ');
 }

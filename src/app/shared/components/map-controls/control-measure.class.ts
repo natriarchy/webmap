@@ -2,122 +2,45 @@ import Control from 'ol/control/Control';
 import { FeatureLike } from 'ol/Feature';
 import { Circle as CircleGeom, LineString, Point, Polygon } from 'ol/geom';
 import GeometryType from 'ol/geom/GeometryType';
-import { Modify, Draw } from 'ol/interaction';
-import { Vector as VectorLayer, Group as LayerGroup } from 'ol/layer';
+import { Draw } from 'ol/interaction';
+import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 import { getArea, getLength } from 'ol/sphere';
-import { Circle as CircleStyle, Fill, RegularShape, Stroke, Style, Text } from 'ol/style';
+import { Circle as CircleStyle, Fill, RegularShape, Stroke, Style } from 'ol/style';
+import Text,{Options as TextOptions} from 'ol/style/Text';
 import tippy from 'tippy.js';
-import { generateToast } from '../../utils/fns-toast';
+import { Toaster } from '../../classes/toaster.class';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Measure extends Control {
   name = 'measure';
-  dropdownContent: HTMLElement;
   tippyDropdown: any;
-  source = new VectorSource();
-  drawInteraction: Draw;
-  drawLayer = new VectorLayer({
-    className: 'DrawLayer',
-    source: this.source,
-    style: this.styleFunction.bind(this)
-  });
-  drawType: 'distance' | 'area' | 'radius' = 'distance';
-  drawing = false;
-  geomType: {[key: string]: any} = {
-    area: GeometryType.POLYGON,
-    distance: GeometryType.LINE_STRING,
-    radius: GeometryType.CIRCLE
-  };
-  style = new Style({
-    fill: new Fill({color: 'rgba(255, 255, 255, 0.2)'}),
-    stroke: new Stroke({color: 'rgba(0, 0, 0, 0.5)', lineDash: [10, 10], width: 2}),
-    image: new CircleStyle({
-      radius: 5,
-      stroke: new Stroke({ color: 'rgba(0, 0, 0, 0.7)' }),
-      fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' })
-    })
-  });
-  labelStyle = new Style({
-    text: new Text({
-      font: '14px Segoe UI,Calibri,sans-serif',
-      fill: new Fill({ color: 'rgba(255, 255, 255, 1)' }),
-      backgroundFill: new Fill({ color: 'rgba(0, 0, 0, 0.7)' }),
-      padding: [3, 3, 3, 3],
-      textBaseline: 'bottom',
-      offsetY: -15
-    }),
-    image: new RegularShape({
-      radius: 8,
-      points: 3,
-      angle: Math.PI,
-      displacement: [0, 10],
-      fill: new Fill({ color: 'rgba(0, 0, 0, 0.7)' })
-    })
-  });
-  tipStyle = new Style({
-    text: new Text({
-      font: '12px Segoe UI,Calibri, sans-serif',
-      fill: new Fill({ color: 'rgba(255, 255, 255, 1)' }),
-      backgroundFill: new Fill({ color: 'rgba(0, 0, 0, 0.4)' }),
-      padding: [2, 2, 2, 2],
-      textAlign: 'left',
-      offsetX: 15
-    })
-  });
-  modifyStyle = new Style({
-    image: new CircleStyle({
-      radius: 5,
-      stroke: new Stroke({
-        color: 'rgba(0, 0, 0, 0.7)',
-      }),
-      fill: new Fill({ color: 'rgba(0, 0, 0, 0.4)' })
-    }),
-    text: new Text({
-      font: '12px Segoe UI,Calibri, sans-serif',
-      fill: new Fill({ color: 'rgba(255, 255, 255, 1)' }),
-      backgroundFill: new Fill({ color: 'rgba(0, 0, 0, 0.7)' }),
-      padding: [2, 2, 2, 2],
-      textAlign: 'left',
-      offsetX: 15
-    })
-  });
-  centroidStyle = new Style({
-    image: new CircleStyle({
-      radius: 5,
-      stroke: new Stroke({
-        color: 'rgba(0, 0, 0, 0.7)',
-      }),
-      fill: new Fill({ color: 'rgba(0, 0, 0, 0.4)' })
-    })
-  });
-  segmentStyle = new Style({
-    text: new Text({
-      font: '12px Segoe UI,Calibri, sans-serif',
-      fill: new Fill({ color: 'rgba(255, 255, 255, 1)' }),
-      backgroundFill: new Fill({color: 'rgba(0, 0, 0, 0.4)'}),
-      padding: [2, 2, 2, 2],
-      textBaseline: 'bottom',
-      offsetY: -12
-    }),
-    image: new RegularShape({
-      radius: 6,
-      points: 3,
-      angle: Math.PI,
-      displacement: [0, 8],
-      fill: new Fill({ color: 'rgba(0, 0, 0, 0.4)' })
-    })
-  });
-  modify = new Modify({ source: this.source, style: this.modifyStyle });
+  drawInteraction: Draw | undefined;
+  drawType: 'Distance' | 'Area' | 'Radius' = 'Distance';
+  geomType = { Area: GeometryType.POLYGON, Distance: GeometryType.LINE_STRING, Radius: GeometryType.CIRCLE };
+  measureSource = new VectorSource();
+  measureLayer = new VectorLayer({ className: 'measure-layer', source: this.measureSource, style: this.styleFunction.bind(this) });
+  baseStyle: Style;
+  centroidStyle: Style;
+  labelStyle: Style;
+  segmentStyle: Style;
+  tipStyle: Style;
   tipPoint: any;
-  segmentStyles = [this.segmentStyle];
+  segmentStyles: Array<Style>;
   constructor(
     options: {
       parentContainer: HTMLElement
     }) {
     super({ element: options.parentContainer });
     this.set('name', this.name);
-    this.drawInteraction = new Draw({type: this.geomType[this.drawType]});
+
+    this.baseStyle = this.generateStyle('base');
+    this.centroidStyle = this.generateStyle('centroid');
+    this.labelStyle = this.generateStyle('label');
+    this.segmentStyle = this.generateStyle('segment');
+    this.tipStyle = this.generateStyle('tip');
+    this.segmentStyles = [this.segmentStyle];
+
     const ctrlBtn = createElementWith(false, 'button', {
       title: 'Measure Distance, Radius, or Area',
       class: 'webmap-btn ctrl measure-toggle',
@@ -126,46 +49,32 @@ export class Measure extends Control {
       onclick: (e: any) => e.preventDefault()
     });
     this.element.appendChild(ctrlBtn);
-    this.dropdownContent = this.makeDropdown();
-    this.tippyDropdown = tippy(ctrlBtn,
-      {
-        content: this.dropdownContent,
-        appendTo: this.getMap()?.getTargetElement(),
-        interactive: true,
-        allowHTML: true,
-        arrow: false,
-        offset: [0, 0],
-        placement: "right-start",
-        animation: "shift-toward-extreme",
-        theme: "map-light",
-        trigger: "click focus",
-        onShow(instance) {
-          ctrlBtn.classList.add('dropdown-open','no-interaction');
-        },
-        onHide(instance) {
-          ctrlBtn.classList.remove('dropdown-open','no-interaction');
-        }
-      }
-    );
+
+    this.tippyDropdown = tippy(ctrlBtn, {
+      content: this.makeDropdown(),
+      appendTo: this.element,
+      interactive: true,
+      allowHTML: true,
+      arrow: false,
+      offset: [0,7],
+      placement: "right-start",
+      animation: "shift-toward-extreme",
+      theme: "map-light",
+      trigger: "click focus",
+      onShow(e) { ctrlBtn.classList.add('dropdown-open','no-interaction'); },
+      onHide(e) { ctrlBtn.classList.remove('dropdown-open','no-interaction'); }
+    });
   }
   makeDropdown(): HTMLElement {
-    const newDiv = createElementWith(false, 'div', {class: 'tippy_dropdown_div'});
-    ['Distance','Area','Radius'].forEach((m,i,a) => {
-      const btn = createElementWith(false, 'button', {
-        type: 'button',
-        title: `Measure ${m}`,
-        innerHTML: m,
-        onclick: (e: any) => {
-          this.tippyDropdown.hide();
-          this.drawType = m.toLowerCase() as ('distance'|'area'|'radius');
-          this.addInteraction();
-        }
-      });
-      newDiv.appendChild(btn);
-      if (i < (a.length - 1)) newDiv.appendChild(document.createElement('hr'));
+    return createElementWith(false, 'div', {
+      class: 'tippy-dropdown-div',
+      children: ['Distance','Area','Radius'].map((m,i,a) => createElementWith(false, 'button', {
+          type: 'button',
+          title: `Measure ${m}`,
+          innerHTML: m,
+          onclick: (e: any) => this.launchMeasure(m as 'Distance' | 'Area' | 'Radius')
+        }))
     });
-
-    return newDiv;
   }
 
 /**
@@ -174,7 +83,7 @@ export class Measure extends Control {
  * @return {string} - Formatted length, area, or radius in feet or square feet.
  **/
   formatMeasurement(geom: LineString | Polygon | CircleGeom): string {
-    const fixNum = (number: number): string => number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    const fixNum = (number: number): string => String(number).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     if (geom.getType() === 'LineString') {
       const length = getLength(geom, {projection: ''});
       return fixNum(Math.round(length * 3.28084)) + ' ft';
@@ -188,58 +97,60 @@ export class Measure extends Control {
     }
   }
 
-  addInteraction(): void {
-    const activeTip = this.drawType === 'radius'
+  launchMeasure(drawType: 'Distance' | 'Area' | 'Radius'): void {
+    console.info(`Launching Measure Tool - ${drawType}...`);
+    this.tippyDropdown.hide();
+
+    const activeTip = drawType === 'Radius'
       ? 'Click to finish drawing'
       : 'Click to continue drawing; double-click to finish';
     const idleTip = 'Click to start measuring';
-    const map = this.getMap()!;
-    if (this.modify.getMap()) map.removeInteraction(this.drawInteraction);
-    map.addInteraction(this.modify);
-    const newtoast = generateToast('action','Click on Map to Measure', 'Click this to exit measure.');
-    (newtoast.firstElementChild as HTMLElement).onclick = (e: any) => this.endInteraction();
-    map.getLayers().forEach(l => {
-        if (l.get('className') === 'Hidden') {
-          (l as LayerGroup).getLayersArray().find(l => l.getClassName() === 'DrawLayer')
-          ? (l as LayerGroup).getLayers().extend([this.drawLayer])
-          : undefined;
-        }
-    });
     let tip = idleTip;
-    this.drawing = true;
+
+    // Generate Toast Element and give a click listener to exit measure
+    const measureToast = new Toaster({tone: 'action', header: `Click on Map to Measure ${drawType}`, body: 'Click Here or Press ESC Key to Exit'});
+    (measureToast.toastElement.firstElementChild as HTMLElement).onclick = (e: any) => this.endMeasure();
+
+    const map = this.getMap()!;
+    map.getAllLayers().find(l => l.getClassName() === 'measure-layer')
+      ? map.removeLayer(map.getAllLayers().find(l => l.getClassName() === 'measure-layer')!)
+      : this.measureLayer.setMap(map);
+
+    if (this.drawInteraction) {
+      this.drawInteraction.abortDrawing();
+      map.removeInteraction(this.drawInteraction!);
+      this.drawInteraction = undefined;
+    }
     this.drawInteraction = new Draw({
-      source: this.source,
-      type: this.geomType[this.drawType],
+      source: this.measureSource,
+      type: this.geomType[drawType],
       stopClick: true,
-      style: (feature) => this.styleFunction(feature, tip)
+      style: (f) => this.styleFunction(f, tip)
     });
-    this.drawInteraction.on('drawstart', () => {
-      this.source.clear();
-      this.modify.setActive(false);
-      tip = activeTip;
-    });
-    this.drawInteraction.on('drawend', () => {
-      this.modifyStyle.setGeometry(this.tipPoint);
-      this.modifyStyle.getText().setText(idleTip);
-      this.modify.setActive(true);
-      map.once('pointermove', () => { this.modifyStyle.setGeometry(''); });
-      tip = idleTip;
-    });
-    document.addEventListener('keyup', (e) => {if (e.key === 'Escape') this.endInteraction();}, {once: true});
-    this.modify.setActive(true);
+    this.drawInteraction.on('drawstart', () => { this.measureSource.clear(); tip = activeTip; });
+    this.drawInteraction.on('drawend', () => { tip = idleTip; });
+    document.addEventListener('keyup', this.handleEscapeKey.bind(this), { once: true });
     map.addInteraction(this.drawInteraction);
-    this.drawLayer.setSource(this.source);
   }
-  endInteraction(): void {
-    this.modify.setActive(false);
-    this.drawInteraction.setActive(false);
-    this.drawing = false;
+  endMeasure(): void {
     if (document.getElementById('toast-message')) document.getElementById('toast-message')!.remove();
-    this.getMap()!.removeInteraction(this.drawInteraction);
-    console.info('End Measure Interaction');
+    if (this.tippyDropdown) this.tippyDropdown.hide();
+    document.removeEventListener('keyup', this.handleEscapeKey);
+
+    const map = this.getMap()!;
+    map.removeInteraction(this.drawInteraction!);
+    map.removeLayer(map.getAllLayers().find(l => l.getClassName() === 'measure-layer')!);
+
+    this.drawInteraction = undefined;
+    this.measureSource.clear();
+    console.info('Exiting Measure Tool...');
+  }
+  handleEscapeKey(e: any): void {
+    e.preventDefault();
+    if (e.key === 'Escape') this.endMeasure();
   }
   styleFunction(feature: FeatureLike, tip?: any): Array<Style> {
-    const styles = [this.style];
+    const styles: Array<Style> = [new Style({stroke: new Stroke({color: 'rgba(50,50,50,0.75)', width: 5})}), this.baseStyle];
     const geometry = feature.getGeometry();
     const type = geometry!.getType();
     let point, label, line;
@@ -248,8 +159,7 @@ export class Measure extends Control {
       label = this.formatMeasurement(geometry);
       line = new LineString((geometry as Polygon).getCoordinates()[0]);
     } else if (geometry instanceof CircleGeom) {
-      point = new Point(geometry.getCenter());
-      this.centroidStyle.setGeometry(point);
+      this.centroidStyle.setGeometry(new Point(geometry.getCenter()));
       styles.push(this.centroidStyle);
       label = this.formatMeasurement(geometry);
       line = new LineString(geometry.getExtent());
@@ -260,13 +170,11 @@ export class Measure extends Control {
     }
     if (line) {
       let count = 0;
-      (line as LineString).forEachSegment((a, b) => {
-        const segment = new LineString([a, b]);
-        const label = this.formatMeasurement(segment);
+      (line as LineString).forEachSegment((coordsA, coordsB) => {
+        const segment = new LineString([coordsA, coordsB]);
         if (this.segmentStyles.length - 1 < count) this.segmentStyles.push(this.segmentStyle.clone());
-        const segmentPoint = new Point(segment.getCoordinateAt(0.5));
-        this.segmentStyles[count].setGeometry(segmentPoint);
-        this.segmentStyles[count].getText().setText(label);
+        this.segmentStyles[count].setGeometry(segment);
+        this.segmentStyles[count].getText().setText(this.formatMeasurement(segment));
         styles.push(this.segmentStyles[count]);
         count++;
       });
@@ -276,11 +184,36 @@ export class Measure extends Control {
       this.labelStyle.getText().setText(label);
       styles.push(this.labelStyle);
     }
-    if (tip && type === 'Point' && !this.modify.getOverlay().getSource().getFeatures().length) {
+    if (tip && type === 'Point') {
       this.tipPoint = geometry;
       this.tipStyle.getText().setText(tip);
       styles.push(this.tipStyle);
     }
     return styles;
+  }
+  generateStyle(forType: 'base'|'centroid'|'label'|'segment'|'tip'): Style {
+    const makeText = () => new Text({
+        font: `${forType === 'label' ? 14 : 12}px Segoe UI,Calibri,sans-serif`,
+        fill: new Fill({ color: 'white' }),
+        padding: [3,3,3,3],
+        textBaseline: forType === 'label' ? 'bottom' : undefined,
+        placement: forType === 'segment' ? 'line' : undefined,
+        stroke: forType === 'segment' ? new Stroke({ color: 'rgba(50,50,50)', width: 5 }) : undefined,
+        textAlign: forType === 'tip' ? 'left' : undefined,
+        backgroundFill: forType !== 'segment' ? new Fill({ color: 'rgba(50,50,50,0.75)' }) : undefined,
+        offsetX: forType === 'tip' ? 20 : 0,
+        ...( forType === 'label' && { offsetY: -15 } ),
+        ...( forType === 'tip' && { offsetY: 20 } )
+    });
+    const imageStyle = (): CircleStyle | RegularShape => forType === 'base'
+      ? new CircleStyle({ radius: 5, stroke: new Stroke({ color: 'rgba(0, 0, 0, 0.7)' }), fill: new Fill({ color: 'rgba(0, 0, 0, 0.4)' }) })
+      : new RegularShape({ radius: 8, points: 3, angle: Math.PI, displacement: [0, 8], fill: new Fill({ color: 'rgba(50,50,50,0.75)' }) })
+
+    return new Style({
+      fill: new Fill({color: 'rgba(0, 0, 0, 0.2)'}),
+      stroke: forType === 'base' ? new Stroke({color: 'rgba(255, 255, 255, 0.85)', lineDash: [10, 10], width: 2}) : undefined,
+      text: ['label','segment','tip'].includes(forType) ? makeText() : undefined,
+      image: ['base','centroid','label'].includes(forType) ? imageStyle() : undefined
+    });
   }
 }

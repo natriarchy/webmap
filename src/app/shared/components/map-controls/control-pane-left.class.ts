@@ -3,7 +3,7 @@ import { Control } from 'ol/control';
 import { BSIconOptions } from '../../utils/constants';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
-export class LeftPane extends Control {
+export class LeftPaneMulti extends Control {
   toggleBtn: HTMLElement;
   paneElement: HTMLElement;
   toggleStatus = false;
@@ -39,7 +39,7 @@ export class LeftPane extends Control {
       }
     });
     this.paneElement.prepend(this.paneSections);
-    setTimeout(this.intializePane.bind(this), 1000, this.getMap());
+    setTimeout(this.intializePane.bind(this), 500, this.getMap());
   }
   intializePane(map?: Map): void {
     if (map) {
@@ -64,7 +64,7 @@ export class LeftPane extends Control {
       activeControls.forEach(s => paneSectionsHTML += `<div class="pane-section">${sectionRadioInput(s).outerHTML + sectionRadioLabel(s).outerHTML}</div>`);
       document.getElementById('pane-sections')!.innerHTML = paneSectionsHTML;
     } else {
-      setTimeout(this.intializePane.bind(this), 1000, super.getMap());
+      setTimeout(this.intializePane.bind(this), 500, super.getMap());
     }
   }
   handleToggle(event: MouseEvent): void {

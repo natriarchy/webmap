@@ -27,9 +27,6 @@ export class LayersManager extends Control {
       setTimeout(this.intializeLayers.bind(this), 1000, this.getMap());
     }
   }
-  handleClick(event: MouseEvent): void {
-    console.log(event);
-  }
   generateLayers(): void {
     this.getMap()!.getAllLayers().forEach((l,i,a) => {
       const layerListItem = this.makeLayerListItem(l);

@@ -1,6 +1,6 @@
 import Control from 'ol/control/Control';
+import { Toaster } from '../../classes/toaster.class';
 import { SettingsOptions, SettingsOptionsMaster } from '../../models';
-import { generateToast } from '../../utils/fns-toast';
 import { createElementWith } from '../../utils/fns-utility';
 
 export class Settings extends Control {
@@ -10,7 +10,7 @@ export class Settings extends Control {
   baseSettings: SettingsOptionsMaster = {
     'Allow Hover': { type: 'boolean', label: 'Allow Hover Interaction', initValue: true, fn: this.toggleHover.bind(this)  },
     'Show Coordinates': { type: 'boolean', label: 'Show Coordinates of Cursor at Bottom of Page', initValue: false, fn: this.toggleCoords.bind(this) },
-    'Toast Button': { type: 'action', label: 'Click to Generate a Temporary Toast Message', fn: this.toggleHover.bind(this) }
+    'Toast Button': { type: 'action', label: 'Click to Generate a Temporary Toast Message', fn: this.makeToast.bind(this) }
   };
   constructor(
     options: {
@@ -20,28 +20,15 @@ export class Settings extends Control {
     super({element: options.parentContainer});
     this.set('name', this.name);
     if (options.initSettings) Object.assign(this.baseSettings, options.initSettings);
-
-    const toastbtn1 = createElementWith(false, 'button', {
-      innerHTML: 'Toaster',
-      onclick: (e: MouseEvent) => {
-        generateToast('action',"here's a dumb toast, fuck off",undefined,'long');
-      }
-    });
-    const toastbtn2 = createElementWith(false, 'button', {
-      innerHTML: 'Toaster',
-      onclick: (e: MouseEvent) => {
-        generateToast('info',"here's a dumb toast, fuck off",undefined,'long');
-      }
-    });
-    const toastbtn3 = createElementWith(false, 'button', {
-      innerHTML: 'Toaster',
-      onclick: (e: MouseEvent) => {
-        generateToast('warning',"here's a dumb toast, fuck off",undefined,'short');
-      }
-    });
+    const settingEls = Object.entries(this.baseSettings).map(s => createElementWith(false,'button', {
+      type: 'button',
+      title: s[1].label,
+      innerHTML: s[0],
+      onclick: s[1].fn
+    }));
     this.settingsDiv = createElementWith(false, 'div', {
       class: 'pane-section-container '+this.name,
-      children: [toastbtn1,toastbtn2,toastbtn3]
+      children: settingEls
     });
     this.element.appendChild(this.settingsDiv);
   }
@@ -51,6 +38,15 @@ export class Settings extends Control {
   handleChange(event: any): void {
     console.info(event);
   }
-  toggleHover(): void {}
-  toggleCoords(): void {}
+  toggleHover(e: any): void {
+    console.info(e);
+    console.info('toggle hover');
+  }
+  toggleCoords(e: any): void {
+    console.info(e);
+    console.info('toggle coords');
+  }
+  makeToast(e: any) {
+    console.info('make toast');
+  }
 }

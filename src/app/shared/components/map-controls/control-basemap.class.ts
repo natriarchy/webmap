@@ -46,11 +46,11 @@ export class BasemapToggle extends Control {
     this.tippyDropdown = tippy(ctrlBtn,
       {
         content: this.dropdownContent,
-        appendTo: this.getMap()?.getTargetElement(),
+        appendTo: this.element,
         interactive: true,
         allowHTML: true,
         arrow: false,
-        offset: [0, 0],
+        offset: [0, 7],
         placement: "right-start",
         animation: "shift-toward-extreme",
         theme: "map-light",
@@ -77,24 +77,14 @@ export class BasemapToggle extends Control {
     }
   }
   makeDropdown(): HTMLElement {
-    const newDiv = document.createElement('div');
-    newDiv.className = 'tippy_dropdown_div';
-    ['Streets','Satellite'].forEach((m,i,a) => {
-      const btn = document.createElement('button');
-      btn.setAttribute('title', `Set Basemap to ${m}`);
-      btn.innerText = `${m}`;
-      btn.addEventListener(
-        'click',
-        () => this.changeBasemap(m as 'Streets' | 'Satellite'),
-        false
-      );
-      newDiv.appendChild(btn);
-      if (i < (a.length - 1)) {
-        const newHr = document.createElement('hr');
-        newDiv.appendChild(newHr);
-      }
+    return createElementWith(false, 'div', {
+      class: 'tippy-dropdown-div',
+      children: ['Streets','Satellite'].map((el,i,a) => createElementWith(false, 'button', {
+          type: 'button',
+          title: `Set Basemap to ${el}`,
+          innerHTML: el,
+          onclick: (e: any) => this.changeBasemap(el as 'Streets' | 'Satellite')
+        }))
     });
-
-    return newDiv;
   }
 }

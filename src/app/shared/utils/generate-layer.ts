@@ -16,6 +16,7 @@ export function makeLayer(
     initVisible = false,
     srcUrl: string,
     srcAttribution: Array<string>,
+    srcDescription: string,
     styleDetail: StyleDetailObj
   ): Layer<any, any> {
     const baseLyrObj = (obj: object) => Object.assign({
@@ -26,7 +27,8 @@ export function makeLayer(
       minResolution: styleDetail.limits?.minResolution,
       maxResolution: styleDetail.limits?.maxResolution,
       minZoom: styleDetail.limits?.minZoom,
-      maxZoom: styleDetail.limits?.maxZoom
+      maxZoom: styleDetail.limits?.maxZoom,
+      srcDescription: srcDescription
     }, obj);
     let newLyr: Layer<any, any>;
     if (lyrType === 'TileLayer') {
@@ -87,20 +89,20 @@ export function basicStyleFunction(
     if (lyr.type === 'VectorLayer') feature.get(styleDetail.keyProp!) ? (feature as Feature<any>).setId(feature.get(styleDetail.keyProp!)) : (feature as Feature<any>).setId('N/A');
     if (featType === 'Point' && styleDetail.type !== 'ramp-special') {
       newStyleObj = new Style({
-        image: styleDetail.icon ? generateIconStyle(styleDetail.icon.src ? styleDetail.icon.src : 'geo-alt-fill', styleDetail.icon.size, (styleDetail.icon.color || baseClassObj.fill)) : undefined
+        image: styleDetail.icon ? generateIconStyle(styleDetail.icon.src ?? 'geo-alt-fill', styleDetail.icon.size, styleDetail.icon.color ?? baseClassObj.fill) : undefined
       });
     } else if (featType === 'Point') {
       newStyleObj = new Style({
-        image: generateIconStyle(styleDetail.classObject![featValue ? featValue : 'Other'].iconSrc!, styleDetail.icon!.size, (styleDetail.icon!.color || baseClassObj.fill))
+        image: generateIconStyle(styleDetail.classObject![featValue ?? 'Other'].iconSrc!, styleDetail.icon!.size, styleDetail.icon!.color ?? baseClassObj.fill)
       });
     } else if (['LineString', 'MultiLineString'].includes(featType)) {
-      return generateLineStyle((baseClassObj.strokeColor || baseClassObj.fill), 1.5, baseClassObj.strokeType);
+      return generateLineStyle(baseClassObj.strokeColor ?? baseClassObj.fill, 1.5, baseClassObj.strokeType);
     } else {
       newStyleObj = new Style({
         fill: ['basic','ramp-basic','ramp-special'].includes(styleDetail.type)
           ? new Fill({color: baseClassObj.fill[0] === '#' ? baseClassObj.fill + convertToHexOpacity(0.5) : baseClassObj.fill.replace(')',`,0.5)`)})
           : undefined,
-        stroke: new Stroke({color: baseClassObj.strokeColor ? baseClassObj.strokeColor : baseClassObj.fill, width: 1, lineCap: 'round', lineJoin: 'round', lineDash: baseClassObj.strokeType === 'dashed' ? [5,2.5] : undefined})
+        stroke: new Stroke({color: baseClassObj.strokeColor ?? baseClassObj.fill, width: 1, lineCap: 'round', lineJoin: 'round', lineDash: baseClassObj.strokeType === 'dashed' ? [5,2.5] : undefined})
       });
     }
     if (styleDetail.labels && newStyleObj) {
@@ -137,7 +139,7 @@ export function makeTextStyle(
     };
     //'#1a73e8'
     return new Text({
-      text: textContent !== '' ? stringDivider(textContent, 25, '\n') : '',
+      text: textContent && textContent !== '' ? stringDivider(textContent, 25, '\n') : '',
       font: `${sizing[size].weight} ${sizing[size].font} '${sizing[size].fontFam}', Verdana, sans-serif`,
       textAlign: featType === 'Point' ? 'left' : 'center',
       offsetX: labelOffset[0],
@@ -146,7 +148,7 @@ export function makeTextStyle(
       placement: ['LineString', 'MultiLineString'].includes(featType) ? 'line' : 'point',
       padding: [5, 5, 5, 5],
       fill: new Fill({ color: fillColor }),
-      stroke: new Stroke({ color: strokeColor ? strokeColor : getContrastYIQ(fillColor), width: sizing[size].strokeWidth }),
+      stroke: new Stroke({ color: strokeColor ?? getContrastYIQ(fillColor), width: sizing[size].strokeWidth }),
   });
 };
 
@@ -187,13 +189,14 @@ export function generateIconStyle(
     'style': `-webkit-filter: ${shadowStyle}; filter: ${shadowStyle}`,
     stroke: getContrastYIQ(iconColor)
   }).outerHTML : undefined;
+  const isNotSvg = iconSrc.match(/(.png|.jpg|.jpeg)$/i) !== null;
   return new Icon({
       src: srcType === 'string' ? iconSrc as string : 'data:image/svg+xml;utf8,' + newIcon,
-      imgSize: iconSrc.endsWith('png') ? undefined : [20,21],
+      imgSize: isNotSvg ? undefined : [20,21],
       scale: scaleLevelOptions[iconSize],
-      displacement: iconSrc.endsWith('png') ? undefined : [0,10],
+      displacement: isNotSvg ? undefined : [0,10],
       crossOrigin: 'anonymous',
-      color: iconSrc.endsWith('png') ? undefined : iconColor
+      color: isNotSvg ? undefined : iconColor
   });
 };
 

@@ -3,7 +3,7 @@ import { Component, ElementRef, OnInit } from '@angular/core';
 import { Overlay, View, Map, MapBrowserEvent } from 'ol';
 import { Attribution, ScaleLine } from 'ol/control';
 import { defaults, DragPan, Draw, Select } from 'ol/interaction';
-import { Condition, pointerMove} from 'ol/events/condition';
+import { Condition, pointerMove, touchOnly} from 'ol/events/condition';
 import { fromLonLat } from 'ol/proj';
 import * as MyControls from './map-controls';
 import { LayerDetailObj } from '../models';
@@ -40,7 +40,7 @@ export class MapViewComponent implements OnInit {
     this.pointerPopupElement = document.getElementById('pointer-popup')!;
     this.instance = new Map({
       layers: [],
-      interactions: defaults({ pinchRotate: false })
+      interactions: defaults({altShiftDragRotate: false, pinchRotate: false, shiftDragZoom: false })
         .extend([
           // allow mousewheel to pan map
             new DragPan({ condition: e => (e.originalEvent.which === 2) }),
@@ -59,7 +59,7 @@ export class MapViewComponent implements OnInit {
         new MyControls.BasemapToggle({parentContainer: this.controlsTopLeftElement!}),
         new MyControls.LayersManager({parentContainer: this.controlsPaneLeftElement!}),
         new MyControls.Fullscreen({parentContainer: this.controlsTopLeftElement!}),
-        new MyControls.LeftPane({paneName: 'Menu', toggleBtnContainer: document.getElementById('controls-top-toolbar')!, paneElement: this.controlsPaneLeftElement!}),
+        new MyControls.LeftPaneMulti({paneName: 'Menu', toggleBtnContainer: document.getElementById('controls-top-toolbar')!, paneElement: this.controlsPaneLeftElement!}),
         new MyControls.Search({parentContainer: document.getElementById('controls-top-toolbar')!}),
         new MyControls.Settings({parentContainer: this.controlsPaneLeftElement!}),
         new ScaleLine({ target: document.querySelector('footer .scale-bar')! as HTMLElement,  units: 'us'})
@@ -104,7 +104,7 @@ export class MapViewComponent implements OnInit {
     this.http.get<Array<LayerDetailObj>>('assets/data/layer-details.json')
       .subscribe({
         next: r => this.instance.setLayers(
-          r.map(l => makeLayer(l.lyrGroup, l.lyrName, l.lyrType, l.lyrZIndex, l.initVisible, l.srcUrl, l.srcAttribution, l.styleDetail))
+          r.map(l => makeLayer(l.lyrGroup, l.lyrName, l.lyrType, l.lyrZIndex, l.initVisible, l.srcUrl, l.srcAttribution, l.srcDescription || '',l.styleDetail))
         ),
         complete: () => console.info('Layers Loaded')
     });

@@ -172,7 +172,7 @@ export type SettingType<T extends keyof InitVals, E extends boolean> = {
 } & (
   T extends 'action' ? {} : { initValue: InitVals[T]; }
 ) & (
-  E extends true ? { fn?: () => any; } : {}
+  E extends true ? { fn?: (e: any) => any; } : {}
 );
 
 export interface SettingsOptions<E extends boolean> {

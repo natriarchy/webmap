@@ -10,7 +10,7 @@ export function createElementWith<T extends boolean, SVGType extends keyof SVGEl
     svgNamespace: T,
     elementType: SVGType | HTMLType,
     setAttributes: { [key: string]: any }
-): T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType] {
+  ): T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType] {
     const newElement = svgNamespace ? document.createElementNS(`http://www.w3.org/2000/${elementType}`, elementType) : document.createElement(elementType);
     Object.entries(setAttributes).forEach(i => {
         if (i[0] === 'children') {
@@ -27,28 +27,14 @@ export function createElementWith<T extends boolean, SVGType extends keyof SVGEl
     return newElement as T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType];
 };
 
-export const createBtnGrp = (buttons: Array < { name: string;value: any; } > , onClickFn ? : any): HTMLElement => {
-    const newBtns: Array < HTMLElement > = [];
-    buttons.forEach((b, i, a) => {
-        const newbtn = createElementWith(false, 'button', {
-            type: 'button',
-            title: b.name,
-            class: firstOrLast(i, a.length),
-            innerHTML: b.name,
-            value: b.value,
-            onclick: onClickFn
-        });
-        newBtns.push(newbtn);
-    });
-    console.info(newBtns);
-
-    return createElementWith(false, 'div', {
-        class: 'button-group',
-        children: newBtns
-    });
-};
-
-export function createFormField(inputType: 'checkbox' | 'radio', initState: 'checked' | '', inputVal: string, labelText: string, groupName ? : string, addWrapperClass ? : string): HTMLElement {
+export function createFormField(
+    inputType: 'checkbox' | 'radio',
+    initState: 'checked' | '',
+    inputVal: string,
+    labelText: string,
+    groupName?: string,
+    addWrapperClass?: string
+  ): HTMLElement {
     const fieldInput = `<input type="${inputType}" id="${inputVal.replace(/(_|\s|\&)/gi, '-').toLowerCase() + '-' + inputType}" ${groupName ? 'name="' + groupName + '"' : ''} checked="${initState}" value="${inputVal}" />`;
     const fieldLabel = `<label for="${inputVal.replace(/(_|\s|\&)/gi, '-').toLowerCase() + '-' + inputType}">${makeTitleCase(labelText)}</label>`;
     return createElementWith(false, 'div', {
@@ -64,8 +50,11 @@ export function createFormField(inputType: 'checkbox' | 'radio', initState: 'che
  * @param {object} setAttributes Object of Other Attributes you want to set
  * @returns {SVGSVGElement} Returns an SVG Element
  **/
-export const generatePointSVG = (shape: BSIconOptions, mapIcon = false, setAttributes ? : {
-    [prop: string]: any }): SVGSVGElement => {
+export const generatePointSVG = (
+  shape: BSIconOptions,
+  mapIcon = false,
+  setAttributes?:  {[prop: string]: any }
+  ): SVGSVGElement => {
     const svgEl = createElementWith(true, 'svg', {
         'xmlns': 'http://www.w3.org/2000/svg',
         'viewBox': '0 0 16 16',

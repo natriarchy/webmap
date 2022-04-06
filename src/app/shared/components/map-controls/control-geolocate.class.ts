@@ -6,6 +6,9 @@ import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
 import { generateIconStyle } from '../../utils/generate-layer';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
+import { Toaster } from '../../classes/toaster.class';
+import { formatDMS, getDMS } from '../../utils/fns-google';
+import { toLonLat } from 'ol/proj';
 
 export class Geolocate extends Control {
   name = 'geolocation';
@@ -27,6 +30,8 @@ export class Geolocate extends Control {
     });
     this.positionFeature = new Feature();
     this.accuracyFeature = new Feature();
+    this.positionFeature.setId('Your Location');
+    this.accuracyFeature.setId('Location Accuracy');
     this.geolocationLayer = new VectorLayer({
       className: 'geolocation',
       source: new VectorSource({
@@ -37,51 +42,47 @@ export class Geolocate extends Control {
       title: 'Find My Location',
       class: 'webmap-btn ctrl geolocate',
       'aria-label': 'Circle with a Dot, Use to Find Current Location on Map',
-      innerHTML: generatePointSVG('geo-alt-fill').outerHTML
+      innerHTML: generatePointSVG('geo-alt-fill').outerHTML,
+      onclick: this.handleClick.bind(this)
     });
-    newBtn.addEventListener(
-      'click',
-      this.handleClick.bind(this),
-      false
-    );
     this.element.appendChild(newBtn);
   }
   handleClick(event: MouseEvent): void {
     event.preventDefault();
-    const map = this.getMap()!;
     if (!this.trackingActive) {
-      map!.addLayer(this.geolocationLayer);
+      this.getMap()!.addLayer(this.geolocationLayer);
 
       this.geolocation.setTracking(true);
-      this.geolocation.setProjection(map.getView().getProjection());
+      this.geolocation.setProjection(this.getMap()!.getView().getProjection());
       this.trackingActive = true;
+      new Toaster({tone: 'info',header: 'Finding Your Location',timer: 'indeterminate'});
 
       this.geolocation.once('change:position', (e) => {
-        this.positionFeature.setGeometry(new Point(this.geolocation.getPosition()!));
-        this.positionFeature.setStyle(new Style({image: generateIconStyle('geo-alt-fill')}));
+        const locationPt = this.geolocation.getPosition();
+        if (locationPt) {
+          this.positionFeature.setProperties({
+            geometry: new Point(locationPt),
+            'location': locationPt
+          });
+          this.positionFeature.setStyle(new Style({image: generateIconStyle('geo-alt-fill')}));
+          this.getMap()!.getView().animate({
+            center: locationPt,
+            zoom: 5,
+            duration: 400
+          });
+          new Toaster({tone: 'info', header: 'Location: ', value: formatDMS(toLonLat(locationPt)), timer: 'short'}).addClick('value');
+        };
       });
       this.geolocation.once('change:accuracyGeometry', (e) => {
         const geom = this.geolocation.getAccuracyGeometry();
-        if (geom) {
-          this.accuracyFeature.setGeometry(geom);
-          map!.getView().fit(geom.getExtent(), {
-            padding: [50,50,50,50],
-            duration: 350
-          });
-        };
+        console.info(e);
+        if (geom) this.accuracyFeature.setGeometry(geom)
       });
       this.geolocation.once('error', () => {
         console.warn('Geolocation Not Working!');
       });
-
-      this.geolocation.once('change:position', () => {
-        map!.getView().fit(this.geolocation.getAccuracyGeometry()!.getExtent(),
-        { padding: [50,50,50,50],
-          duration: 350
-        })
-      });
     } else {
-      map!.removeLayer(this.geolocationLayer);
+      this.getMap()!.removeLayer(this.geolocationLayer);
       this.geolocation.setTracking(false);
       this.trackingActive = false;
     };
