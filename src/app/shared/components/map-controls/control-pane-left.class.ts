@@ -63,6 +63,7 @@ export class LeftPaneMulti extends Control {
       });
       activeControls.forEach(s => paneSectionsHTML += `<div class="pane-section">${sectionRadioInput(s).outerHTML + sectionRadioLabel(s).outerHTML}</div>`);
       document.getElementById('pane-sections')!.innerHTML = paneSectionsHTML;
+      (this.paneSections.querySelector('input') as HTMLInputElement).click();
     } else {
       setTimeout(this.intializePane.bind(this), 500, super.getMap());
     }
