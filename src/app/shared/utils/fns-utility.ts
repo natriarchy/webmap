@@ -1,3 +1,4 @@
+import { MapTableOpts } from "../models";
 import { BSIconOptions, svgPath } from "./constants";
 
 /**
@@ -6,9 +7,9 @@ import { BSIconOptions, svgPath } from "./constants";
  * @param {string} elementType - TagName of the Element you're generating
  * @param {Object} setAttributes - Object of Other Attributes you want to set
  **/
-export function createElementWith<T extends boolean, SVGType extends keyof SVGElementTagNameMap, HTMLType extends keyof HTMLElementTagNameMap> (
+export function createElementWith<T extends boolean, SVGType extends keyof SVGElementTagNameMap, HTMLType extends keyof HTMLElementTagNameMap>(
     svgNamespace: T,
-    elementType: SVGType | HTMLType,
+    elementType: T extends true ? SVGType : HTMLType,
     setAttributes: { [key: string]: any }
   ): T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType] {
     const newElement = svgNamespace ? document.createElementNS(`http://www.w3.org/2000/${elementType}`, elementType) : document.createElement(elementType);
@@ -77,20 +78,28 @@ export const generatePointSVG = (
  **/
 export const makeTitleCase = (str: string, separator ? : string): string => str.split(separator || ' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
 
-export const generateAttrTable = (
-    header: string,
-    subheader: string,
-    attributes ? : {
-        [key: string]: any }
-): HTMLTableElement => {
-    const newTable = createElementWith(false, 'table', { class: 'attribute-table', innerHTML: `<tr><th>${makeTitleCase(header,'-')}</th></tr><tr><td>${subheader}</td></tr>` });
-    if (attributes) Object.entries(attributes).filter(a => !['geometry', '_symbol', 'layer'].includes(a[0]) && header !== a[1]).forEach(entry => {
-        const newRow = createElementWith(false, 'tr', {
-            class: 'attribute-row',
-            innerHTML: `<td class='attribute-prop'>${entry[0]}</td><td class='attribute-val'>${entry[1]}</td>`
-        });
-        newTable.appendChild(newRow);
-    });
+export const generateTable = <T extends keyof MapTableOpts>(
+  type: T,
+  content: MapTableOpts[T]
+  ): HTMLTableElement => {
+    const tableHeader: Array<HTMLTableRowElement> = [createElementWith(false, 'tr', {
+      innerHTML: `<th>${type === 'basic' ? makeTitleCase((content as MapTableOpts['basic']).header,'-') : 'Property'}</th>${type === 'attribute' ? '<th>Value</th>' : ''}`
+    })];
+    const tableRows = type === 'attribute'
+      ? Object.entries((content as MapTableOpts['attribute']).attributes)
+          .filter(a => !['geometry', '_symbol', 'layer'].includes(a[0]))
+          .map(e => createElementWith(false, 'tr', {
+            innerHTML: `<td class='prop'>${e[0]}</td><td class='val'>${e[1]}</td>`,
+            onclick: (e: MouseEvent) => {
+              navigator.clipboard.writeText((e.currentTarget as HTMLElement).textContent!);
+            }
+          }))
+      : [
+        createElementWith(false, 'tr', {
+          innerHTML: `</tr><tr><td>${(content as MapTableOpts['basic']).subheader}</td></tr>`
+        })
+      ];
+    const newTable = createElementWith(false, 'table', {class: `map-table ${type}`, children: tableHeader.concat(tableRows)});
 
     return newTable;
 };

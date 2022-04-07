@@ -1,7 +1,7 @@
 import { BSIconOptions } from "../utils/constants";
 import { createElementWith, generatePointSVG } from "../utils/fns-utility";
 
-export class Toaster {
+export class MapToast {
   toastElement: HTMLElement;
   toneIcon: {[key: string]: BSIconOptions} = {
     action: 'check-square-fill',
@@ -17,7 +17,7 @@ export class Toaster {
     timer?: 'short' | 'long' | 'indeterminate'
     value?: string,
   }) {
-    if (document.getElementById('toast-message')) document.getElementById('toast-message')!.remove();
+    if (document.getElementById('toast-element')) document.getElementById('toast-element')!.remove();
     if (options.value) this.valueInput = createElementWith(false, 'input', {
       type: 'text',
       id: 'toastValueInput',
@@ -32,14 +32,14 @@ export class Toaster {
             ${options.header}
             ${options.value ? this.valueInput?.outerHTML + '<label for="toastValueInput">' + options.value + '</label>' : ''}
           </span>
-          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-message').remove();">${generatePointSVG('x').outerHTML}</button>
+          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-element').remove();">${generatePointSVG('x').outerHTML}</button>
         </div>
         ${options.body ? '<div class="toast-body">'+options.body+'</div>' : ''}
         ${options.timer ? '<div id="toast-timer"><div></div></div>' : ''}
       </div>
     `;
     this.toastElement = createElementWith(false, 'section', {
-      id: 'toast-message',
+      id: 'toast-element',
       class: options.tone,
       innerHTML: this.innerHTMLString
     });
@@ -63,11 +63,11 @@ export class Toaster {
     if (timerType !== 'indeterminate') this.detroyToast(animationOptions[timerType].duration as number);
   }
   public detroyToast(timing: number): void {
-    const animation = document.getElementById('toast-message')!.animate([{opacity: 1},{opacity: 0}],{delay: timing * 0.9, duration: timing * 0.1});
+    const animation = document.getElementById('toast-element')!.animate([{opacity: 1},{opacity: 0}],{delay: timing * 0.9, duration: timing * 0.1});
     animation.onfinish = (e: any) => {this.toastElement?.remove();};
   }
   public addClick(result: 'close' | 'value'): void {
-    document.getElementById('toast-message')!.addEventListener(
+    document.getElementById('toast-element')!.addEventListener(
       'click',
       (e: MouseEvent) => result === 'close' ? this.destroyTimer('short') : this.getValue(e),
       {once: true}

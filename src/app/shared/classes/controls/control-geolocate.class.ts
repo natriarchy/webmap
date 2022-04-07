@@ -6,8 +6,8 @@ import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
 import { generateIconStyle } from '../../utils/generate-layer';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
-import { Toaster } from '../../classes/toaster.class';
-import { formatDMS, getDMS } from '../../utils/fns-google';
+import { MapToast } from '../../classes/map-toast.class';
+import { formatDMS } from '../../utils/fns-google';
 import { toLonLat } from 'ol/proj';
 
 export class Geolocate extends Control {
@@ -55,7 +55,7 @@ export class Geolocate extends Control {
       this.geolocation.setTracking(true);
       this.geolocation.setProjection(this.getMap()!.getView().getProjection());
       this.trackingActive = true;
-      new Toaster({tone: 'info',header: 'Finding Your Location',timer: 'indeterminate'});
+      new MapToast({tone: 'info',header: 'Finding Your Location',timer: 'indeterminate'});
 
       this.geolocation.once('change:position', (e) => {
         const locationPt = this.geolocation.getPosition();
@@ -70,7 +70,7 @@ export class Geolocate extends Control {
             zoom: 5,
             duration: 400
           });
-          new Toaster({tone: 'info', header: 'Location: ', value: formatDMS(toLonLat(locationPt)), timer: 'short'}).addClick('value');
+          new MapToast({tone: 'info', header: 'Location: ', value: formatDMS(toLonLat(locationPt)), timer: 'short'}).addClick('value');
         };
       });
       this.geolocation.once('change:accuracyGeometry', (e) => {

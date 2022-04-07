@@ -6,10 +6,9 @@ import { Draw } from 'ol/interaction';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 import { getArea, getLength } from 'ol/sphere';
-import { Circle as CircleStyle, Fill, RegularShape, Stroke, Style } from 'ol/style';
-import Text,{Options as TextOptions} from 'ol/style/Text';
+import { Circle as CircleStyle, Fill, RegularShape, Stroke, Style, Text } from 'ol/style';
 import tippy from 'tippy.js';
-import { Toaster } from '../../classes/toaster.class';
+import { MapToast } from '../../classes/map-toast.class';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Measure extends Control {
@@ -108,7 +107,7 @@ export class Measure extends Control {
     let tip = idleTip;
 
     // Generate Toast Element and give a click listener to exit measure
-    const measureToast = new Toaster({tone: 'action', header: `Click on Map to Measure ${drawType}`, body: 'Click Here or Press ESC Key to Exit'});
+    const measureToast = new MapToast({tone: 'action', header: `Click on Map to Measure ${drawType}`, body: 'Click Here or Press ESC Key to Exit'});
     (measureToast.toastElement.firstElementChild as HTMLElement).onclick = (e: any) => this.endMeasure();
 
     const map = this.getMap()!;
@@ -133,7 +132,7 @@ export class Measure extends Control {
     map.addInteraction(this.drawInteraction);
   }
   endMeasure(): void {
-    if (document.getElementById('toast-message')) document.getElementById('toast-message')!.remove();
+    if (document.getElementById('toast-element')) document.getElementById('toast-element')!.remove();
     if (this.tippyDropdown) this.tippyDropdown.hide();
     document.removeEventListener('keyup', this.handleEscapeKey);
 

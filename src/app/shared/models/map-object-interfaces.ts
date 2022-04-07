@@ -182,3 +182,7 @@ export interface SettingsOptionsMaster extends SettingsOptions<true> {
   'Allow Hover': SettingType<'boolean', true>;
   'Show Coordinates': SettingType<'boolean', true>;
 }
+export interface MapTableOpts {
+  'basic': {header: string; subheader: string;},
+  'attribute': {attributes: { [key: string]: any }}
+}

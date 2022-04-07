@@ -1,15 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { Overlay, View, Map, MapBrowserEvent } from 'ol';
+import { Overlay, View, Map, MapBrowserEvent, Feature } from 'ol';
 import { Attribution, ScaleLine } from 'ol/control';
 import { defaults, DragPan, Draw, Select } from 'ol/interaction';
-import { Condition, pointerMove, touchOnly} from 'ol/events/condition';
+import { Condition, pointerMove, singleClick, touchOnly} from 'ol/events/condition';
 import { fromLonLat } from 'ol/proj';
-import * as MyControls from './map-controls';
+import * as MyControls from '../classes/controls';
 import { LayerDetailObj } from '../models';
 import { MapInfoService } from '../services';
 import { makeLayer } from '../utils/generate-layer';
-import { generateAttrTable } from '../utils/fns-utility';
+import { generateTable } from '../utils/fns-utility';
+import { MapModal } from '../classes/map-modal.class';
+import { SelectEvent } from 'ol/interaction/Select';
+import { unByKey } from 'ol/Observable';
+import { getVectorContext } from 'ol/render';
+import { easeOut } from 'ol/easing';
 
 @Component({
   selector: 'app-map-view',
@@ -24,10 +29,11 @@ export class MapViewComponent implements OnInit {
   controlsPaneLeftElement: HTMLElement | undefined;
   pointerPopupElement: HTMLElement | undefined;
   defaultExtent = fromLonLat([-74.2853199, 40.7910592]).concat(fromLonLat([-74.0617852, 40.6733126])) as [number, number, number, number];
-  drawInteraction: Draw | undefined;
-  pointerTooltip: Overlay = new Overlay({});
   selectHover: Select = new Select();
-  isCanvasCondition: Condition = (e: MapBrowserEvent<any>) => e.originalEvent.target.tagName === 'CANVAS' || this.pointerPopupElement?.contains(e.originalEvent.target) === true;
+  selectClick: Select = new Select();
+  activeModalElement: MapModal | undefined;
+  isCanvas: Condition = (e: MapBrowserEvent<any>) => e.originalEvent.target.tagName === 'CANVAS' || document.getElementById('pointer-tooltip')?.contains(e.originalEvent.target) === true;
+  isDrawing: Condition = (e: MapBrowserEvent<any>) => this.instance.getInteractions().getArray().find(i => i instanceof Draw) !== undefined;
   constructor(
     private readonly host: ElementRef,
     readonly http: HttpClient,
@@ -45,7 +51,12 @@ export class MapViewComponent implements OnInit {
           // allow mousewheel to pan map
             new DragPan({ condition: e => (e.originalEvent.which === 2) }),
             this.selectHover = new Select({
-              condition: (e) => pointerMove(e) && this.isCanvasCondition(e),
+              condition: (e) => pointerMove(e) && this.isCanvas(e) && !this.isDrawing(e) && !touchOnly(e),
+              hitTolerance: 10,
+              style: null
+            }),
+            this.selectClick = new Select({
+              condition: (e) => singleClick(e) && this.isCanvas(e),
               hitTolerance: 10,
               style: null
             })
@@ -65,10 +76,11 @@ export class MapViewComponent implements OnInit {
         new ScaleLine({ target: document.querySelector('footer .scale-bar')! as HTMLElement,  units: 'us'})
       ],
       overlays: [
-        this.pointerTooltip = new Overlay({
-          element: document.getElementById('pointer-popup')!,
+        new Overlay({
+          element: document.getElementById('pointer-tooltip')!,
           positioning: 'bottom-center',
-          stopEvent: false,
+          stopEvent: true,
+          id: 'pointer-tooltip'
         })
       ],
       target: this.host.nativeElement.firstElementChild,
@@ -85,22 +97,6 @@ export class MapViewComponent implements OnInit {
         ]
       })
     });
-    this.instance.on('pointermove', (e: MapBrowserEvent<any>) => {
-      if (this.isCanvasCondition(e) === false || e.dragging || this.drawInteraction?.getActive()) {
-        this.pointerTooltip.setPosition(undefined);
-        this.pointerPopupElement!.innerHTML = '';
-        return;
-      }
-      const hit = this.instance.hasFeatureAtPixel(e.pixel);
-      this.pointerTooltip.setPosition(hit ? e.coordinate : undefined);
-      if (!hit) this.pointerPopupElement!.innerHTML = '';
-      if (this.selectHover.getActive() && this.selectHover.getFeatures().getLength() > 0) {
-        const feat = this.selectHover.getFeatures().item(0);
-        if (this.selectHover.getLayer(feat)) this.pointerPopupElement!.replaceChildren(
-          generateAttrTable(this.selectHover.getLayer(feat).getClassName(), feat.getId() as string)
-        );
-      }
-    });
     this.http.get<Array<LayerDetailObj>>('assets/data/layer-details.json')
       .subscribe({
         next: r => this.instance.setLayers(
@@ -108,9 +104,49 @@ export class MapViewComponent implements OnInit {
         ),
         complete: () => console.info('Layers Loaded')
     });
-    this.instance.getInteractions().on(['add','remove'], (e: any) => {
-      if (e.element instanceof Draw) this.drawInteraction = e.type === 'add' ?  e.element : undefined;
-    });
+
+    this.selectHover.on('select', this.handleSelectHover.bind(this));
+    this.selectClick.on('select', this.handleSelectClick.bind(this));
+    this.instance.on('pointermove', this.handlePointerMove.bind(this));
+
     setTimeout(() => {this.instance.updateSize();},1000);
+  }
+  handlePointerMove(e: MapBrowserEvent<any>): void {
+    if (!this.isCanvas(e) || !this.selectHover.getActive() || e.dragging || this.isDrawing(e)) {
+      this.instance.getOverlayById('pointer-tooltip').setPosition(undefined);
+    } else {
+      this.instance.getOverlayById('pointer-tooltip').setPosition(this.instance.hasFeatureAtPixel(e.pixel) ? e.coordinate : undefined);
+    }
+  }
+  handleSelectHover(e: SelectEvent): void {
+    const pointerTooltipEl = this.instance.getOverlayById('pointer-tooltip').getElement()!;
+    if (e.selected.length === 0) {
+      pointerTooltipEl.innerHTML === '';
+    } else if (e.selected[0] !== e.deselected[0]) {
+      pointerTooltipEl.replaceChildren(
+        generateTable('basic', {
+          header: this.selectHover.getLayer(e.selected[0]).getClassName(),
+          subheader: e.selected[0].getId() as string
+        })
+      );
+    }
+  }
+  zoomToFeat(): void {
+    if (this.selectClick.getFeatures().item(0)) {
+      this.instance.getView().fit(this.selectClick.getFeatures().item(0).getGeometry());
+    }
+  }
+  handleSelectClick(e: SelectEvent): void {
+    this.activeModalElement?.detroyModal();
+    this.activeModalElement = undefined;
+    if (e.selected.length > 0) {
+      this.activeModalElement = new MapModal({
+        type: 'feature',
+        header: e.selected[0].getId() as string,
+        subheader: this.selectClick.getLayer(e.selected[0]).getClassName(),
+        attrTable: e.selected[0].getProperties()
+      });
+      this.activeModalElement.addEventListener('zoomBtnClick', this.zoomToFeat.bind(this));
+    }
   }
 }

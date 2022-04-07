@@ -1,5 +1,5 @@
 import { Control } from 'ol/control';
-import { Toaster } from '../../classes/toaster.class';
+import { MapToast } from '../../classes/map-toast.class';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Fullscreen extends Control {
@@ -28,7 +28,7 @@ export class Fullscreen extends Control {
   handleClick(event: MouseEvent): void {
     event.preventDefault();
     if (!document.fullscreenEnabled) {
-        new Toaster({tone: 'warning', header: 'Device does not allow fullscreen.', timer: 'short'});
+        new MapToast({tone: 'warning', header: 'Device does not allow fullscreen.', timer: 'short'});
         return;
     }
     const isFullScreen: boolean = !!(

@@ -1,5 +1,5 @@
 import Control from 'ol/control/Control';
-import { Toaster } from '../../classes/toaster.class';
+import { MapModal } from '../../classes/map-modal.class';
 import { SettingsOptions, SettingsOptionsMaster } from '../../models';
 import { createElementWith } from '../../utils/fns-utility';
 
@@ -10,7 +10,8 @@ export class Settings extends Control {
   baseSettings: SettingsOptionsMaster = {
     'Allow Hover': { type: 'boolean', label: 'Allow Hover Interaction', initValue: true, fn: this.toggleHover.bind(this)  },
     'Show Coordinates': { type: 'boolean', label: 'Show Coordinates of Cursor at Bottom of Page', initValue: false, fn: this.toggleCoords.bind(this) },
-    'Toast Button': { type: 'action', label: 'Click to Generate a Temporary Toast Message', fn: this.makeToast.bind(this) }
+    'Toast Button': { type: 'action', label: 'Click to Generate a Temporary Toast Message', fn: this.makeToast.bind(this) },
+    'Modal Button': { type: 'action', label: 'Click to Generate a Modal ELement', fn: this.makeModal.bind(this) }
   };
   constructor(
     options: {
@@ -48,5 +49,9 @@ export class Settings extends Control {
   }
   makeToast(e: any) {
     console.info('make toast');
+  }
+  makeModal(e: any) {
+    console.info('make modal');
+    new MapModal({type: 'feature', header: 'Example Feature Modal', subheader: 'Layer Name', description: 'Descriptions of features, with data etc.'});
   }
 }
