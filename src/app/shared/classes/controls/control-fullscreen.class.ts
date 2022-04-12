@@ -1,5 +1,5 @@
 import { Control } from 'ol/control';
-import { MapToast } from '../../classes/map-toast.class';
+import { MapToast } from '../elements/map-toast.class';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
 
 export class Fullscreen extends Control {

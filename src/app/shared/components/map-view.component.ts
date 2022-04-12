@@ -1,20 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { Overlay, View, Map, MapBrowserEvent, Feature } from 'ol';
+import { Map, MapBrowserEvent, Overlay, View } from 'ol';
 import { Attribution, ScaleLine } from 'ol/control';
-import { defaults, DragPan, Draw, Select } from 'ol/interaction';
-import { Condition, pointerMove, singleClick, touchOnly} from 'ol/events/condition';
+import { Condition, pointerMove, singleClick, touchOnly } from 'ol/events/condition';
+import { defaults, DragPan, Draw, Pointer, Select } from 'ol/interaction';
+import { SelectEvent } from 'ol/interaction/Select';
 import { fromLonLat } from 'ol/proj';
 import * as MyControls from '../classes/controls';
+import { MapModal } from '../classes/elements/map-modal.class';
 import { LayerDetailObj } from '../models';
 import { MapInfoService } from '../services';
-import { makeLayer } from '../utils/generate-layer';
 import { generateTable } from '../utils/fns-utility';
-import { MapModal } from '../classes/map-modal.class';
-import { SelectEvent } from 'ol/interaction/Select';
-import { unByKey } from 'ol/Observable';
-import { getVectorContext } from 'ol/render';
-import { easeOut } from 'ol/easing';
+import { makeLayer } from '../utils/generate-layer';
+import { handleSelectionLyr } from '../utils/generate-style';
 
 @Component({
   selector: 'app-map-view',
@@ -32,8 +30,9 @@ export class MapViewComponent implements OnInit {
   selectHover: Select = new Select();
   selectClick: Select = new Select();
   activeModalElement: MapModal | undefined;
-  isCanvas: Condition = (e: MapBrowserEvent<any>) => e.originalEvent.target.tagName === 'CANVAS' || document.getElementById('pointer-tooltip')?.contains(e.originalEvent.target) === true;
+  isCanvas: Condition = (e: MapBrowserEvent<any>) => e.originalEvent.target.tagName === 'CANVAS' || e.originalEvent.target.className === 'ol-overlay-container ol-selectable';
   isDrawing: Condition = (e: MapBrowserEvent<any>) => this.instance.getInteractions().getArray().find(i => i instanceof Draw) !== undefined;
+  isMouseWheel: Condition = (e: MapBrowserEvent<any>) => (e.originalEvent.button === 1 || e.originalEvent.which === 2 || e.originalEvent.buttons === 4);
   constructor(
     private readonly host: ElementRef,
     readonly http: HttpClient,
@@ -49,7 +48,7 @@ export class MapViewComponent implements OnInit {
       interactions: defaults({altShiftDragRotate: false, pinchRotate: false, shiftDragZoom: false })
         .extend([
           // allow mousewheel to pan map
-            new DragPan({ condition: e => (e.originalEvent.which === 2) }),
+            new DragPan({ condition: this.isMouseWheel }),
             this.selectHover = new Select({
               condition: (e) => pointerMove(e) && this.isCanvas(e) && !this.isDrawing(e) && !touchOnly(e),
               hitTolerance: 10,
@@ -59,11 +58,12 @@ export class MapViewComponent implements OnInit {
               condition: (e) => singleClick(e) && this.isCanvas(e),
               hitTolerance: 10,
               style: null
-            })
+            }),
+            new Pointer({ handleMoveEvent: e => this.handlePointerMove(e) })
           ]
         ),
       controls: [
-        new Attribution({target: document.querySelector('footer .scale-bar')! as HTMLElement,}),
+        new Attribution({target: document.querySelector('footer .scale-bar')! as HTMLElement}),
         new MyControls.ZoomExtentGroup({parentContainer: this.controlsTopLeftElement!, defaultExtent: this.defaultExtent}),
         new MyControls.Geolocate({parentContainer: this.controlsTopLeftElement!}),
         new MyControls.Measure({parentContainer: this.controlsTopLeftElement!}),
@@ -104,20 +104,18 @@ export class MapViewComponent implements OnInit {
         ),
         complete: () => console.info('Layers Loaded')
     });
-
     this.selectHover.on('select', this.handleSelectHover.bind(this));
     this.selectClick.on('select', this.handleSelectClick.bind(this));
-    this.instance.on('pointermove', this.handlePointerMove.bind(this));
 
     setTimeout(() => {this.instance.updateSize();},1000);
   }
+
   handlePointerMove(e: MapBrowserEvent<any>): void {
-    if (!this.isCanvas(e) || !this.selectHover.getActive() || e.dragging || this.isDrawing(e)) {
-      this.instance.getOverlayById('pointer-tooltip').setPosition(undefined);
-    } else {
-      this.instance.getOverlayById('pointer-tooltip').setPosition(this.instance.hasFeatureAtPixel(e.pixel) ? e.coordinate : undefined);
-    }
+    if (touchOnly(e)) return;
+    const isOK = !(e.dragging || !this.isCanvas(e) || this.isDrawing(e) || this.isMouseWheel(e));
+    this.instance.getOverlayById('pointer-tooltip').setPosition(isOK && this.instance.hasFeatureAtPixel(e.pixel) ? e.coordinate : undefined);
   }
+
   handleSelectHover(e: SelectEvent): void {
     const pointerTooltipEl = this.instance.getOverlayById('pointer-tooltip').getElement()!;
     if (e.selected.length === 0) {
@@ -131,22 +129,32 @@ export class MapViewComponent implements OnInit {
       );
     }
   }
-  zoomToFeat(): void {
-    if (this.selectClick.getFeatures().item(0)) {
-      this.instance.getView().fit(this.selectClick.getFeatures().item(0).getGeometry());
-    }
-  }
+
   handleSelectClick(e: SelectEvent): void {
     this.activeModalElement?.detroyModal();
     this.activeModalElement = undefined;
+    let selectionLayer = this.instance.getAllLayers().find(l => l.getClassName() === 'click-selection');
+    if (selectionLayer) this.instance.removeLayer(selectionLayer);
     if (e.selected.length > 0) {
+      const currentLayer = this.selectClick.getLayer(e.selected[0]);
       this.activeModalElement = new MapModal({
         type: 'feature',
-        header: e.selected[0].getId() as string,
-        subheader: this.selectClick.getLayer(e.selected[0]).getClassName(),
+        header: String(e.selected[0].getId()),
+        subheader: currentLayer.getClassName(),
         attrTable: e.selected[0].getProperties()
       });
       this.activeModalElement.addEventListener('zoomBtnClick', this.zoomToFeat.bind(this));
+      selectionLayer = handleSelectionLyr(e.selected[0], currentLayer);
+      this.instance.addLayer(selectionLayer);
     }
+  }
+
+  zoomToFeat(): void {
+    if (this.selectClick.getFeatures().item(0)) this.instance.getView().fit(this.selectClick.getFeatures().item(0).getGeometry());
+  }
+
+  selectedFeatAction(type: 'zoom' | 'outline'): void {
+    if (type === 'zoom' && this.selectClick.getFeatures().item(0)) this.instance.getView().fit(this.selectClick.getFeatures().item(0).getGeometry());
+
   }
 }

@@ -4,9 +4,9 @@ import Point from 'ol/geom/Point';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
-import { generateIconStyle } from '../../utils/generate-layer';
+import { generateIconStyle } from '../../utils/generate-style';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
-import { MapToast } from '../../classes/map-toast.class';
+import { MapToast } from '../elements/map-toast.class';
 import { formatDMS } from '../../utils/fns-google';
 import { toLonLat } from 'ol/proj';
 

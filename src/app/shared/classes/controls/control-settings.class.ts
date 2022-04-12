@@ -1,5 +1,5 @@
 import Control from 'ol/control/Control';
-import { MapModal } from '../../classes/map-modal.class';
+import { MapModal } from '../elements/map-modal.class';
 import { SettingsOptions, SettingsOptionsMaster } from '../../models';
 import { createElementWith } from '../../utils/fns-utility';
 

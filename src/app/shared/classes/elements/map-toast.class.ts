@@ -1,5 +1,5 @@
-import { BSIconOptions } from "../utils/constants";
-import { createElementWith, generatePointSVG } from "../utils/fns-utility";
+import { BSIconOptions } from "../../utils/constants";
+import { createElementWith, generatePointSVG } from "../../utils/fns-utility";
 
 export class MapToast {
   toastElement: HTMLElement;

@@ -6,10 +6,11 @@ import { Draw } from 'ol/interaction';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 import { getArea, getLength } from 'ol/sphere';
-import { Circle as CircleStyle, Fill, RegularShape, Stroke, Style, Text } from 'ol/style';
+import { Stroke, Style } from 'ol/style';
 import tippy from 'tippy.js';
-import { MapToast } from '../../classes/map-toast.class';
+import { MapToast } from '../elements/map-toast.class';
 import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
+import { generateMeasureStyle } from '../../utils/generate-style';
 
 export class Measure extends Control {
   name = 'measure';
@@ -33,11 +34,11 @@ export class Measure extends Control {
     super({ element: options.parentContainer });
     this.set('name', this.name);
 
-    this.baseStyle = this.generateStyle('base');
-    this.centroidStyle = this.generateStyle('centroid');
-    this.labelStyle = this.generateStyle('label');
-    this.segmentStyle = this.generateStyle('segment');
-    this.tipStyle = this.generateStyle('tip');
+    this.baseStyle = generateMeasureStyle('base');
+    this.centroidStyle = generateMeasureStyle('centroid');
+    this.labelStyle = generateMeasureStyle('label');
+    this.segmentStyle = generateMeasureStyle('segment');
+    this.tipStyle = generateMeasureStyle('tip');
     this.segmentStyles = [this.segmentStyle];
 
     const ctrlBtn = createElementWith(false, 'button', {
@@ -126,6 +127,7 @@ export class Measure extends Control {
       stopClick: true,
       style: (f) => this.styleFunction(f, tip)
     });
+    this.drawInteraction.set('type','Draw');
     this.drawInteraction.on('drawstart', () => { this.measureSource.clear(); tip = activeTip; });
     this.drawInteraction.on('drawend', () => { tip = idleTip; });
     document.addEventListener('keyup', this.handleEscapeKey.bind(this), { once: true });
@@ -189,30 +191,5 @@ export class Measure extends Control {
       styles.push(this.tipStyle);
     }
     return styles;
-  }
-  generateStyle(forType: 'base'|'centroid'|'label'|'segment'|'tip'): Style {
-    const makeText = () => new Text({
-        font: `${forType === 'label' ? 14 : 12}px Segoe UI,Calibri,sans-serif`,
-        fill: new Fill({ color: 'white' }),
-        padding: [3,3,3,3],
-        textBaseline: forType === 'label' ? 'bottom' : undefined,
-        placement: forType === 'segment' ? 'line' : undefined,
-        stroke: forType === 'segment' ? new Stroke({ color: 'rgba(50,50,50)', width: 5 }) : undefined,
-        textAlign: forType === 'tip' ? 'left' : undefined,
-        backgroundFill: forType !== 'segment' ? new Fill({ color: 'rgba(50,50,50,0.75)' }) : undefined,
-        offsetX: forType === 'tip' ? 20 : 0,
-        ...( forType === 'label' && { offsetY: -15 } ),
-        ...( forType === 'tip' && { offsetY: 20 } )
-    });
-    const imageStyle = (): CircleStyle | RegularShape => forType === 'base'
-      ? new CircleStyle({ radius: 5, stroke: new Stroke({ color: 'rgba(0, 0, 0, 0.7)' }), fill: new Fill({ color: 'rgba(0, 0, 0, 0.4)' }) })
-      : new RegularShape({ radius: 8, points: 3, angle: Math.PI, displacement: [0, 8], fill: new Fill({ color: 'rgba(50,50,50,0.75)' }) })
-
-    return new Style({
-      fill: new Fill({color: 'rgba(0, 0, 0, 0.2)'}),
-      stroke: forType === 'base' ? new Stroke({color: 'rgba(255, 255, 255, 0.85)', lineDash: [10, 10], width: 2}) : undefined,
-      text: ['label','segment','tip'].includes(forType) ? makeText() : undefined,
-      image: ['base','centroid','label'].includes(forType) ? imageStyle() : undefined
-    });
   }
 }
