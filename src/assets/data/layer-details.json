@@ -22,15 +22,19 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "ramp-special",
+            "featType": "point",
             "keyProp": "STATION",
             "classObject": {
                 "EWR": {
+                    "label": "NJT - Newark Airport",
                     "iconSrc": "assets/img/icons/Logo_Airport.png"
                 },
                 "Broad St.": {
+                    "label": "NJT - Broad St",
                     "iconSrc": "assets/img/icons/Logo_Broad.png"
                 },
                 "Penn Stn.": {
+                    "label": "NJT - Penn Stn",
                     "iconSrc": "assets/img/icons/Logo_Penn.png"
                 }
             },
@@ -56,6 +60,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "basic",
+            "featType": "point",
             "keyProp": "STATION",
             "labels": {
                 "size": "normal",
@@ -81,6 +86,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "basic",
+            "featType": "point",
             "keyProp": "StopID_Location",
             "icon": {
                 "size": "small",
@@ -99,6 +105,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "basic",
+            "featType": "point",
             "keyProp": "StopID_Location",
             "icon": {
                 "size": "x-small",
@@ -119,6 +126,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "ramp-special",
+            "featType": "polygon",
             "keyProp": "ZONING",
             "classObject": {
                 "Other": {
@@ -245,6 +253,7 @@
         "srcDescription": "City of Newark Parcel boundaries, current as of the July 2021 release from the Tax Assessors' office. Incorporates information from State MODIV tax data",
         "styleDetail": {
             "type": "ramp-special",
+            "featType": "polygon",
             "keyProp": "ZONING",
             "idProp": "LOT_BLOCK_LOT",
             "classObject": {
@@ -373,6 +382,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "basic",
+            "featType": "polygon",
             "keyProp": "ABR_NAME",
             "classObject": { "all": { "fill": "rgb(128,147,241)", "strokeColor": "rgb(128,147,241)", "strokeType": "dashed", "label": "Historic District" } },
             "labels": { "property": "ABR_NAME", "size": "large", "fill": "rgb(255,255,255)", "strokeColor": "rgb(128,147,241)" }
@@ -388,6 +398,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "basic",
+            "featType": "point",
             "keyProp": "bldgdesc",
             "icon": { "size": "normal", "color": "rgb(128,147,241)" },
             "labels": { "property": "bldgdesc", "size": "normal", "fill": "rgb(128,147,241)", "offset": [15, -10], "maxResolution": 2.5 }
@@ -403,6 +414,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "basic",
+            "featType": "polygon",
             "keyProp": "ShortName",
             "classObject": {
                 "all": { "fill": "rgb(254,95,05)", "label": "Redevelopment Plan Area", "strokeColor": "rgb(254,95,0)", "strokeType": "dashed" }
@@ -419,6 +431,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "ramp-special",
+            "featType": "line",
             "keyProp": "TruckRteDesig",
             "classObject": {
                 "Other": { "strokeColor": "rgb(150,150,150)", "label": "Other" },
@@ -439,6 +452,7 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "basic",
+            "featType": "polygon",
             "keyProp": "NAMELSAD",
             "classObject": {
                 "all": { "fill": "rgb(106,88,55)", "label": "Opportunity Zone", "strokeColor": "rgb(106,88,55)" }
@@ -458,9 +472,10 @@
         "srcDescription": "",
         "styleDetail": {
             "type": "basic",
+            "featType": "polygon",
             "keyProp": "NAMELSAD",
             "classObject": {
-                "all": { "fill": "rgb(226,157,227)", "label": "Urban Enterprise Zone", "strokeColor": "rgb(226,157,227)" }
+                "all": { "label": "Urban Enterprise Zone", "fill": "rgb(226,157,227)", "strokeColor": "rgb(226,157,227)" }
             }
         }
     }, {
@@ -473,9 +488,10 @@
         "srcDescription": "City of Newark Census Tracts, as delineated by the 2020 release of US Census TIGER Boundaries",
         "styleDetail": {
             "type": "boundary",
+            "featType": "polygon",
             "keyProp": "NAMELSAD",
             "classObject": {
-                "all": { "label": "Census Tract", "strokeColor": "rgb(0,0,0)" }
+                "all": { "label": "Census Tract", "fill": "transparent", "strokeColor": "rgb(0,0,0)" }
             },
             "labels": {
                 "property": "NAMELSAD",
@@ -494,9 +510,10 @@
         "srcDescription": "City of Newark Zipcodes Tabulation Areas, as delineated by the 2010 release of US Census TIGER Boundaries.",
         "styleDetail": {
             "type": "boundary",
+            "featType": "polygon",
             "keyProp": "ZCTA5CE10",
             "classObject": {
-                "all": { "label": "Zipcode Boundary", "strokeColor": "rgb(0,0,0)" }
+                "all": { "label": "Zipcode Boundary", "fill": "transparent", "strokeColor": "rgb(0,0,0)" }
             },
             "labels": {
                 "property": "ZCTA5CE10",
@@ -515,9 +532,10 @@
         "srcDescription": "City of Newark Neighborhods, as used by Newark Planning & Zoning Office and codified in the 2015 Zoning and Land Use Regulations.",
         "styleDetail": {
             "type": "boundary",
+            "featType": "polygon",
             "keyProp": "name",
             "classObject": {
-                "all": { "label": "Neighborhood", "strokeColor": "rgb(0,0,0)" }
+                "all": { "label": "Neighborhood", "fill": "transparent", "strokeColor": "rgb(0,0,0)" }
             },
             "labels": {
                 "property": "name",
@@ -536,9 +554,10 @@
         "srcDescription": "City of Newark Ward Boundaries as delineated in 2012, the last census redistricting. Boundaries drawn to reflect similar similar population totals amongst the five wards.",
         "styleDetail": {
             "type": "boundary",
+            "featType": "polygon",
             "keyProp": "WARD_NAME",
             "classObject": {
-                "all": { "label": "Ward", "strokeColor": "rgb(0,0,0)" }
+                "all": { "label": "Ward", "fill": "transparent", "strokeColor": "rgb(0,0,0)" }
             },
             "labels": {
                 "property": "WARD_NAME",

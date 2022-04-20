@@ -10,6 +10,7 @@ export interface ClassObjectBase {
 }
 export interface StyleDetailObj {
   type: 'basic' | 'boundary' | 'ramp-basic' | 'ramp-special' | 'no style';
+  featType: 'line' | 'polygon' | 'point';
   keyProp?: string;
   idProp?: string;
   classObject?: {[key: string]: ClassObjectBase};
@@ -161,28 +162,31 @@ export interface ArcPropInfo extends IObject {
 }
 
 type InitVals = {
-  "boolean": boolean;
-  "options": Array<{label: string; val: any}>;
-  "action": never;
+  "button": undefined;
+  "checkbox": boolean;
+  "radio": boolean | string | number;
+  "select": string;
 }
 
-export type SettingType<T extends keyof InitVals, E extends boolean> = {
+export type SettingType<T extends keyof InitVals> = {
   type: T;
-  label: string;
+  options: Array<T extends 'button' ? {label: string} : {label: string; value: InitVals[T]; }>;
+  fn?: (e: any) => any;
 } & (
-  T extends 'action' ? {} : { initValue: InitVals[T]; }
-) & (
-  E extends true ? { fn?: (e: any) => any; } : {}
+  T extends 'checkbox' ? {} : {outerLabel: string;}
 );
 
-export interface SettingsOptions<E extends boolean> {
-  [setting: string]: SettingType<'action', E> | SettingType<'boolean', E> | SettingType<'options', E>;
+export interface InitSettings {
+  "AllowSelectHover": SettingType<"checkbox">;
+  "AllowSelectClick": SettingType<"checkbox">;
+  "ShowCursorCoords": SettingType<"checkbox">;
 }
-export interface SettingsOptionsMaster extends SettingsOptions<true> {
-  'Allow Hover': SettingType<'boolean', true>;
-  'Show Coordinates': SettingType<'boolean', true>;
+export interface SettingsOptions extends InitSettings {
+  [setting: string]: SettingType<'button'> | SettingType<'checkbox'> | SettingType<'radio'> | SettingType<'select'>;
 }
+
 export interface MapTableOpts {
-  'basic': {header: string; subheader: string;},
-  'attribute': {attributes: { [key: string]: any }}
+  'basic': {header: string; subheader: string;};
+  'attribute': {attributes: { [key: string]: any }};
+  'legend': {featType: 'polygon'|'point'|'line'; classes: StyleDetailObj['classObject']};
 }

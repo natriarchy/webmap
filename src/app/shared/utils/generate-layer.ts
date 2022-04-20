@@ -46,7 +46,7 @@ export function makeLayer(
         style: (feat: FeatureLike, resolution: number) => basicStyleFunction(feat, resolution, styleDetail, {name: lyrName, type: lyrType})
       }));
     } else if (lyrType === 'VectorLayer' && styleDetail.type !== 'ramp-basic') {
-      if (styleDetail.classObject === undefined) styleDetail.classObject = {'all': {fill: generalColorRamps.bright[lyrZIndex], label: styleDetail.keyProp ? styleDetail.keyProp : lyrName.replace(/s$/,'')}};
+      if (styleDetail.classObject === undefined) styleDetail.classObject = {'all': {fill: generalColorRamps.bright[lyrZIndex], label: styleDetail.keyProp ? styleDetail.keyProp : lyrName.replace(/s$/,''), iconSrc: styleDetail.icon?.src}};
       newLyr = new VectorLayer(baseLyrObj({
         source: new VectorSource({ url: srcUrl, format: new GeoJSON({featureProjection: 'EPSG:4326'}), attributions: srcAttribution }),
         style: (feat: FeatureLike, resolution: number) => basicStyleFunction(feat, resolution, styleDetail, {name: lyrName, type: lyrType})

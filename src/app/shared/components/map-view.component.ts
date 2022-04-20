@@ -1,15 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { Map, MapBrowserEvent, Overlay, View } from 'ol';
+import { Map, Overlay, View } from 'ol';
 import { Attribution, ScaleLine } from 'ol/control';
-import { Condition, pointerMove, singleClick, touchOnly } from 'ol/events/condition';
-import { defaults, DragPan, Draw, Pointer, Select } from 'ol/interaction';
+import { pointerMove, singleClick, touchOnly } from 'ol/events/condition';
+import { defaults, DragPan, Pointer, Select } from 'ol/interaction';
 import { SelectEvent } from 'ol/interaction/Select';
 import { fromLonLat } from 'ol/proj';
 import * as MyControls from '../classes/controls';
 import { MapModal } from '../classes/elements/map-modal.class';
 import { LayerDetailObj } from '../models';
 import { MapInfoService } from '../services';
+import { checkSetting, isCanvas, isMWheel } from '../utils/conditions';
 import { generateTable } from '../utils/fns-utility';
 import { makeLayer } from '../utils/generate-layer';
 import { handleSelectionLyr } from '../utils/generate-style';
@@ -29,10 +30,9 @@ export class MapViewComponent implements OnInit {
   defaultExtent = fromLonLat([-74.2853199, 40.7910592]).concat(fromLonLat([-74.0617852, 40.6733126])) as [number, number, number, number];
   selectHover: Select = new Select();
   selectClick: Select = new Select();
+  dragPan: DragPan = new DragPan();
   activeModalElement: MapModal | undefined;
-  isCanvas: Condition = (e: MapBrowserEvent<any>) => e.originalEvent.target.tagName === 'CANVAS' || e.originalEvent.target.className === 'ol-overlay-container ol-selectable';
-  isDrawing: Condition = (e: MapBrowserEvent<any>) => this.instance.getInteractions().getArray().find(i => i instanceof Draw) !== undefined;
-  isMouseWheel: Condition = (e: MapBrowserEvent<any>) => (e.originalEvent.button === 1 || e.originalEvent.which === 2 || e.originalEvent.buttons === 4);
+
   constructor(
     private readonly host: ElementRef,
     readonly http: HttpClient,
@@ -45,21 +45,21 @@ export class MapViewComponent implements OnInit {
     this.pointerPopupElement = document.getElementById('pointer-popup')!;
     this.instance = new Map({
       layers: [],
-      interactions: defaults({altShiftDragRotate: false, pinchRotate: false, shiftDragZoom: false })
+      interactions: defaults({altShiftDragRotate: false, pinchRotate: false, shiftDragZoom: false})
         .extend([
+            new Pointer({handleMoveEvent: this.handlePointerMove.bind(this)}),
           // allow mousewheel to pan map
-            new DragPan({ condition: this.isMouseWheel }),
+            new DragPan({ condition: isMWheel }),
             this.selectHover = new Select({
-              condition: (e) => pointerMove(e) && this.isCanvas(e) && !this.isDrawing(e) && !touchOnly(e),
+              condition: (e) => pointerMove(e) && isCanvas(e) && !isMWheel(e) && checkSetting(e,'AllowSelectHover') && !touchOnly(e),
               hitTolerance: 10,
               style: null
             }),
             this.selectClick = new Select({
-              condition: (e) => singleClick(e) && this.isCanvas(e),
+              condition: (e) => singleClick(e) && isCanvas(e) && checkSetting(e,'AllowSelectClick'),
               hitTolerance: 10,
               style: null
-            }),
-            new Pointer({ handleMoveEvent: e => this.handlePointerMove(e) })
+            })
           ]
         ),
       controls: [
@@ -79,7 +79,7 @@ export class MapViewComponent implements OnInit {
         new Overlay({
           element: document.getElementById('pointer-tooltip')!,
           positioning: 'bottom-center',
-          stopEvent: true,
+          stopEvent: false,
           id: 'pointer-tooltip'
         })
       ],
@@ -97,6 +97,9 @@ export class MapViewComponent implements OnInit {
         ]
       })
     });
+    // Initialize interaction settings for map object
+    ['AllowSelectHover','AllowSelectClick'].forEach(s => this.instance.set(s, true));
+
     this.http.get<Array<LayerDetailObj>>('assets/data/layer-details.json')
       .subscribe({
         next: r => this.instance.setLayers(
@@ -110,10 +113,10 @@ export class MapViewComponent implements OnInit {
     setTimeout(() => {this.instance.updateSize();},1000);
   }
 
-  handlePointerMove(e: MapBrowserEvent<any>): void {
+  handlePointerMove(e: any): void {
     if (touchOnly(e)) return;
-    const isOK = !(e.dragging || !this.isCanvas(e) || this.isDrawing(e) || this.isMouseWheel(e));
-    this.instance.getOverlayById('pointer-tooltip').setPosition(isOK && this.instance.hasFeatureAtPixel(e.pixel) ? e.coordinate : undefined);
+    const isOK = checkSetting(e,'AllowSelectHover') && isCanvas(e) && !e.dragging;
+    this.instance.getOverlayById('pointer-tooltip').setPosition((isOK && this.instance.hasFeatureAtPixel(e.pixel)) ? e.coordinate : undefined);
   }
 
   handleSelectHover(e: SelectEvent): void {
@@ -158,3 +161,4 @@ export class MapViewComponent implements OnInit {
 
   }
 }
+

@@ -1,4 +1,4 @@
-import { MapTableOpts } from "../models";
+import { ClassObjectBase, MapTableOpts } from "../models";
 import { BSIconOptions, svgPath } from "./constants";
 
 /**
@@ -28,19 +28,38 @@ export function createElementWith<T extends boolean, SVGType extends keyof SVGEl
     return newElement as T extends true ? SVGElementTagNameMap[SVGType] : HTMLElementTagNameMap[HTMLType];
 };
 
-export function createFormField(
-    inputType: 'checkbox' | 'radio',
-    initState: 'checked' | '',
-    inputVal: string,
-    labelText: string,
-    groupName?: string,
-    addWrapperClass?: string
+export function createFormField<T extends 'checkbox' | 'radio' | 'select' | 'button'>(
+    inputType: T,
+    inputHidden: boolean,
+    inputValues: Array<{label: string; value?: boolean | string | number;}>,
+    wrapper: T extends 'checkbox' ? undefined : {label: string, group: string, addClass?: string},
+    fn?: (e: any) => any
   ): HTMLElement {
-    const fieldInput = `<input type="${inputType}" id="${inputVal.replace(/(_|\s|\&)/gi, '-').toLowerCase() + '-' + inputType}" ${groupName ? 'name="' + groupName + '"' : ''} checked="${initState}" value="${inputVal}" />`;
-    const fieldLabel = `<label for="${inputVal.replace(/(_|\s|\&)/gi, '-').toLowerCase() + '-' + inputType}">${makeTitleCase(labelText)}</label>`;
+    const fixId = (id: string | undefined) => id ? id.replace(/(_|\s|\&)/gi, '-').toLowerCase() : undefined;
+    const makeInputEls = (label: string, value: any): Array<HTMLElement> => [
+      createElementWith(false, 'label', {
+        for: fixId(label) + '-' + inputType,
+        innerHTML: makeTitleCase(inputType === 'button' && wrapper ? wrapper.label : label)
+      }),
+      createElementWith(false, 'input', {
+        type: inputType,
+        id:  fixId(label) + '-' + inputType,
+        name: fixId(wrapper?.group),
+        checked: value || false,
+        value: value || label,
+        onclick: fn ? fn : undefined
+      })
+    ];
+    const fieldEls = inputType === 'select' && wrapper
+      ? [createElementWith(false, 'select', {
+          id: fixId(wrapper.group),
+          innerHTML: inputValues.map(iv => `<option value="${iv.value}">${iv.label}</option>`).join('')
+        })]
+      : inputValues.flatMap(iv => makeInputEls(iv.label, iv.value).sort((a,b) => compareValues(a, b, inputHidden ? 'asc' : 'desc')));
     return createElementWith(false, 'div', {
-        class: `input-field-group hide-input ${addWrapperClass ? ' '+addWrapperClass : ''}`,
-        innerHTML: fieldInput + fieldLabel
+        class: `input-field-group ${wrapper && wrapper.addClass ? ' '+wrapper.addClass : ''}`,
+        ...(inputType !== 'button' && wrapper && {innerHTML: wrapper.label}),
+        children: fieldEls
     });
 }
 
@@ -65,7 +84,7 @@ export const generatePointSVG = (
         'stroke': 'none'
     });
     if (setAttributes) Object.entries(setAttributes).forEach(attr => { svgEl.setAttribute(attr[0], attr[1]); });
-    svgEl.innerHTML = mapIcon ? svgPath[shape].replace(/<path\s/g, '<path fill="white" stroke="inherit" stroke-width="1"') : svgPath[shape];
+    svgEl.innerHTML = mapIcon ? svgPath[shape].replace(/<path\s/g, '<path style="fill:white;stroke:inherit;stroke-width:1;"') : svgPath[shape];
 
     return svgEl;
 };
@@ -82,23 +101,38 @@ export const generateTable = <T extends keyof MapTableOpts>(
   type: T,
   content: MapTableOpts[T]
   ): HTMLTableElement => {
-    const tableHeader: Array<HTMLTableRowElement> = [createElementWith(false, 'tr', {
-      innerHTML: `<th>${type === 'basic' ? makeTitleCase((content as MapTableOpts['basic']).header,'-') : 'Property'}</th>${type === 'attribute' ? '<th>Value</th>' : ''}`
-    })];
-    const tableRows = type === 'attribute'
-      ? Object.entries((content as MapTableOpts['attribute']).attributes)
-          .filter(a => !['geometry', '_symbol', 'layer'].includes(a[0]))
-          .map(e => createElementWith(false, 'tr', {
-            innerHTML: `<td class='prop'>${e[0]}</td><td class='val'>${e[1]}</td>`,
-            onclick: (e: MouseEvent) => {
-              navigator.clipboard.writeText((e.currentTarget as HTMLElement).textContent!);
-            }
-          }))
-      : [
-        createElementWith(false, 'tr', {
-          innerHTML: `</tr><tr><td>${(content as MapTableOpts['basic']).subheader}</td></tr>`
-        })
-      ];
+    const tableHeader: Array<HTMLTableRowElement> = type === 'legend' ? [] : [
+      createElementWith(false, 'tr', {
+        innerHTML: `<th>${type === 'basic' ? makeTitleCase((content as MapTableOpts['basic']).header,'-') : 'Property'}</th>${type === 'attribute' ? '<th>Value</th>' : ''}`
+      })
+    ];
+    const contentArray = type === 'basic' ? undefined : Object.entries(type === 'legend' && content ? (content as MapTableOpts['legend']).classes! : (content as MapTableOpts['attribute']).attributes);
+    const svgStyling = {
+      line: (fill: string, strokeColor: string, strokeType?: string) => `
+        <path d="M15 85 Q 25 50 85 50 L115 50 Q175 50 185 15" style="stroke:${getContrastYIQ(strokeColor)};stroke-width:20;fill:transparent;stroke-linecap:round" />
+        <path d="M15 85 Q 25 50 85 50 L115 50 Q175 50 185 15" style="stroke:${strokeColor};${strokeType === 'dashed'?'stroke-dasharray:45 20;':''}stroke-width:12;fill:transparent;stroke-linecap:round" />
+      `,
+      polygon: (fill: string, strokeColor: string, strokeType?: string) => `
+        <rect x="10" y="10" width="180" height="80" style="fill:${fill};fill-opacity:0.7;stroke-width:10;${strokeType === 'dashed'?'stroke-dasharray:45 20;':''}stroke:${strokeColor}" />
+      `,
+      point: (fill: string, strokeColor: string, strokeType?: string) => ''
+    };
+    const makePatch = (row: ClassObjectBase, type: 'point'|'line'|'polygon') => row.iconSrc
+      ? `<img src='${row.iconSrc}' />`
+      : `<svg width="1em" height="0.5em" viewBox="0 0 200 100">${svgStyling[type](row.fill || 'transparent', row.strokeColor || getContrastYIQ(row.fill), row.strokeType)}</svg>
+    `;
+    const legendRow = (row: ClassObjectBase) => `<td class='patch'>${makePatch(row, (content as MapTableOpts['legend']).featType)}</td><td class='label'>${row.label}</td>`;
+    const tableRows = type === 'basic' ? [
+      createElementWith(false, 'tr', {
+        innerHTML: `</tr><tr><td>${(content as MapTableOpts['basic']).subheader}</td></tr>`
+      })
+    ] : contentArray!.filter(a => !['geometry', '_symbol', 'layer'].includes(a[0]))
+    .map(e => createElementWith(false, 'tr', {
+      innerHTML: type === 'legend' ? legendRow(e[1]) : `<td class='prop'>${e[0]}</td><td class='val'>${e[1]}</td>`,
+      onclick: (e: MouseEvent) => {
+        navigator.clipboard.writeText((e.currentTarget as HTMLElement).textContent!);
+      }
+    }));
     const newTable = createElementWith(false, 'table', {class: `map-table ${type}`, children: tableHeader.concat(tableRows)});
 
     return newTable;

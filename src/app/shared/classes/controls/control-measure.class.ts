@@ -127,6 +127,7 @@ export class Measure extends Control {
       stopClick: true,
       style: (f) => this.styleFunction(f, tip)
     });
+    ['AllowSelectHover','AllowSelectClick'].forEach(s => map.set(s, false));
     this.drawInteraction.set('type','Draw');
     this.drawInteraction.on('drawstart', () => { this.measureSource.clear(); tip = activeTip; });
     this.drawInteraction.on('drawend', () => { tip = idleTip; });
@@ -144,6 +145,7 @@ export class Measure extends Control {
 
     this.drawInteraction = undefined;
     this.measureSource.clear();
+    ['AllowSelectHover','AllowSelectClick'].forEach(s => map.set(s, true));
     console.info('Exiting Measure Tool...');
   }
   handleEscapeKey(e: any): void {

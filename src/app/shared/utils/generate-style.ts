@@ -19,7 +19,7 @@ export function basicStyleFunction(
     ? feature.get(styleDetail.keyProp!)
     : undefined;
   const baseClassObj: ClassObjectBase = Object.keys(styleDetail.classObject!).length > 1
-    ? styleDetail.classObject![featValue ? featValue : 'Other']
+    ? styleDetail.classObject![featValue ? featValue : 'Other'] as ClassObjectBase
     : Object.values(styleDetail.classObject!)[0];
   let newStyleObj: Style;
   if (lyr.type === 'VectorLayer') feature.get(styleDetail.keyProp!) ? (feature as Feature<any>).setId(feature.get(styleDetail.keyProp!)) : (feature as Feature<any>).setId('N/A');
@@ -101,10 +101,9 @@ export function generateIconStyle(
     'x-large': 1.5
   };
   const srcType = (iconSrc.startsWith('http') || iconSrc.startsWith('assets')) ? 'string' : 'iconOptions';
-  const shadowStyle = 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.75))';
+  const shadowStyle = 'drop-shadow(0px 2px 8px -3px black)';
   const newIcon = srcType === 'iconOptions' ? generatePointSVG(iconSrc as BSIconOptions, true, {
-    'style': `-webkit-filter: ${shadowStyle}; filter: ${shadowStyle}`,
-    stroke: getContrastYIQ(iconColor)
+    style: `-webkit-filter: ${shadowStyle};filter: ${shadowStyle};stroke:${getContrastYIQ(iconColor)}`
   }).outerHTML : undefined;
   const isNotSvg = iconSrc.match(/(.png|.jpg|.jpeg)$/i) !== null;
   return new Icon({
