@@ -1,19 +1,29 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ElementRef, OnInit } from '@angular/core';
-import { Map, Overlay, View } from 'ol';
+import { Component, OnInit } from '@angular/core';
+import { Map, View } from 'ol';
 import { Attribution, ScaleLine } from 'ol/control';
-import { pointerMove, singleClick, touchOnly } from 'ol/events/condition';
-import { defaults, DragPan, Pointer, Select } from 'ol/interaction';
-import { SelectEvent } from 'ol/interaction/Select';
+import { defaults, DragPan } from 'ol/interaction';
 import { fromLonLat } from 'ol/proj';
-import * as MyControls from '../classes/controls';
-import { MapModal } from '../classes/elements/map-modal.class';
+
+// Custom Controls
+import { BasemapToggle } from '../controls/control-basemap';
+import { FullScreenCustom } from '../controls/control-fullscreen';
+import { Geolocate } from '../controls/control-geolocate';
+import { LayersManager } from '../controls/control-layersmanager';
+import { Measure } from '../controls/control-measure';
+import { ControlPaneEl } from '../controls/control-pane-el';
+import { Search } from '../controls/control-search';
+import { Settings } from '../controls/control-settings';
+import { ControlToolbarEl } from '../controls/control-toolbar-el';
+import { ZoomExtentGroup } from '../controls/control-zoom-extent';
+
+// Other Custom Classes
+import { FeatureTooltip } from '../interactions/overlay-feature-tooltip';
+import { FeatClickModal } from '../interactions/interaction-feat-click';
+
 import { LayerDetailObj } from '../models';
-import { MapInfoService } from '../services';
-import { checkSetting, isCanvas, isMWheel } from '../utils/conditions';
-import { generateTable } from '../utils/fns-utility';
 import { makeLayer } from '../utils/generate-layer';
-import { handleSelectionLyr } from '../utils/generate-style';
+
 
 @Component({
   selector: 'app-map-view',
@@ -22,68 +32,23 @@ import { handleSelectionLyr } from '../utils/generate-style';
 })
 
 export class MapViewComponent implements OnInit {
-  instance: Map = new Map({});
-  controlsTopLeftElement: HTMLElement | undefined;
-  controlsToolbarElement: HTMLElement | undefined;
-  controlsPaneLeftElement: HTMLElement | undefined;
-  pointerPopupElement: HTMLElement | undefined;
+  instance: Map;
   defaultExtent = fromLonLat([-74.2853199, 40.7910592]).concat(fromLonLat([-74.0617852, 40.6733126])) as [number, number, number, number];
-  selectHover: Select = new Select();
-  selectClick: Select = new Select();
-  dragPan: DragPan = new DragPan();
-  activeModalElement: MapModal | undefined;
 
-  constructor(
-    private readonly host: ElementRef,
-    readonly http: HttpClient,
-    readonly mapInfoService: MapInfoService
-    ) {}
-  ngOnInit(): void {
-    this.controlsTopLeftElement = document.getElementById('controls-top-left')!;
-    this.controlsToolbarElement = document.getElementById('controls-top-toolbar')!;
-    this.controlsPaneLeftElement = document.getElementById('controls-pane-left')!;
-    this.pointerPopupElement = document.getElementById('pointer-popup')!;
+  constructor(readonly http: HttpClient) {
     this.instance = new Map({
       layers: [],
-      interactions: defaults({altShiftDragRotate: false, pinchRotate: false, shiftDragZoom: false})
-        .extend([
-            new Pointer({handleMoveEvent: this.handlePointerMove.bind(this)}),
-          // allow mousewheel to pan map
-            new DragPan({ condition: isMWheel }),
-            this.selectHover = new Select({
-              condition: (e) => pointerMove(e) && isCanvas(e) && !isMWheel(e) && checkSetting(e,'AllowSelectHover') && !touchOnly(e),
-              hitTolerance: 10,
-              style: null
-            }),
-            this.selectClick = new Select({
-              condition: (e) => singleClick(e) && isCanvas(e) && checkSetting(e,'AllowSelectClick'),
-              hitTolerance: 10,
-              style: null
-            })
-          ]
-        ),
-      controls: [
-        new Attribution({target: document.querySelector('footer .scale-bar')! as HTMLElement}),
-        new MyControls.ZoomExtentGroup({parentContainer: this.controlsTopLeftElement!, defaultExtent: this.defaultExtent}),
-        new MyControls.Geolocate({parentContainer: this.controlsTopLeftElement!}),
-        new MyControls.Measure({parentContainer: this.controlsTopLeftElement!}),
-        new MyControls.BasemapToggle({parentContainer: this.controlsTopLeftElement!}),
-        new MyControls.LayersManager({parentContainer: this.controlsPaneLeftElement!}),
-        new MyControls.Fullscreen({parentContainer: this.controlsTopLeftElement!}),
-        new MyControls.LeftPaneMulti({paneName: 'Menu', toggleBtnContainer: document.getElementById('controls-top-toolbar')!, paneElement: this.controlsPaneLeftElement!}),
-        new MyControls.Search({parentContainer: document.getElementById('controls-top-toolbar')!}),
-        new MyControls.Settings({parentContainer: this.controlsPaneLeftElement!}),
-        new ScaleLine({ target: document.querySelector('footer .scale-bar')! as HTMLElement,  units: 'us'})
-      ],
-      overlays: [
-        new Overlay({
-          element: document.getElementById('pointer-tooltip')!,
-          positioning: 'bottom-center',
-          stopEvent: false,
-          id: 'pointer-tooltip'
-        })
-      ],
-      target: this.host.nativeElement.firstElementChild,
+      interactions: defaults({
+          altShiftDragRotate: false,
+          pinchRotate: false,
+          shiftDragZoom: false
+        }).extend([
+            // allow mousewheel to pan map
+            new DragPan({ condition: e => (e.originalEvent.button === 1 || e.originalEvent.which === 2 || e.originalEvent.buttons === 4) }),
+            new FeatClickModal({})
+        ]),
+      controls: [new Attribution(), new ScaleLine({units: 'us'})],
+      overlays: [new FeatureTooltip({})],
       view: new View({
         center: fromLonLat([-74.1723667, 40.735657]),
         enableRotation: false,
@@ -98,8 +63,38 @@ export class MapViewComponent implements OnInit {
       })
     });
     // Initialize interaction settings for map object
-    ['AllowSelectHover','AllowSelectClick'].forEach(s => this.instance.set(s, true));
-
+    ['AllowSelectHover','AllowFeatureClickModal'].forEach(s => this.instance.set(s, true));
+  }
+  ngOnInit(): void {
+    this.instance.setTarget('map-instance');
+    this.instance.getControls().extend(new ControlToolbarEl({position: 'top-left'}).with([
+        new ZoomExtentGroup({defaultExtent: this.defaultExtent}),
+        new Geolocate({}),
+        new Measure({}),
+        new BasemapToggle({sources: [
+          {
+            name: 'Streets',
+            url: 'https://{a-d}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+            attribution: '<span><a href="http://www.openstreetmap.org/copyright">© OpenStreetMap</a> contributors, <a href="https://carto.com/attribution">© CARTO</a></span>'
+          },
+          {
+            name: 'Satellite',
+            // lyrs param {y queries for sattelite hybrid, s queries for just sattelite, r queries for standard Maps}
+            url: 'https://mt{1-3}.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+            attribution: '<span>Imagery ©2020 Bluesky, Maxar Technologies, Sanborn, USDA Farm Service Agency, <a href="https://www.google.com/permissions/geoguidelines/attr-guide/">Google Streets & Satellite 2020</a></span>'
+          }
+        ]}),
+        new FullScreenCustom({})
+    ]));
+    this.instance.getControls().extend(new ControlToolbarEl({position: 'top'}).with([
+        new Search({})
+    ]));
+    this.instance.getControls().extend(
+      new ControlPaneEl({position:'left', toggleTargetId: 'controltb-top'}).with([
+        new LayersManager({}),
+        new Settings({})
+      ])
+    );
     this.http.get<Array<LayerDetailObj>>('assets/data/layer-details.json')
       .subscribe({
         next: r => this.instance.setLayers(
@@ -107,58 +102,8 @@ export class MapViewComponent implements OnInit {
         ),
         complete: () => console.info('Layers Loaded')
     });
-    this.selectHover.on('select', this.handleSelectHover.bind(this));
-    this.selectClick.on('select', this.handleSelectClick.bind(this));
 
     setTimeout(() => {this.instance.updateSize();},1000);
-  }
-
-  handlePointerMove(e: any): void {
-    if (touchOnly(e)) return;
-    const isOK = checkSetting(e,'AllowSelectHover') && isCanvas(e) && !e.dragging;
-    this.instance.getOverlayById('pointer-tooltip').setPosition((isOK && this.instance.hasFeatureAtPixel(e.pixel)) ? e.coordinate : undefined);
-  }
-
-  handleSelectHover(e: SelectEvent): void {
-    const pointerTooltipEl = this.instance.getOverlayById('pointer-tooltip').getElement()!;
-    if (e.selected.length === 0) {
-      pointerTooltipEl.innerHTML === '';
-    } else if (e.selected[0] !== e.deselected[0]) {
-      pointerTooltipEl.replaceChildren(
-        generateTable('basic', {
-          header: this.selectHover.getLayer(e.selected[0]).getClassName(),
-          subheader: e.selected[0].getId() as string
-        })
-      );
-    }
-  }
-
-  handleSelectClick(e: SelectEvent): void {
-    this.activeModalElement?.detroyModal();
-    this.activeModalElement = undefined;
-    let selectionLayer = this.instance.getAllLayers().find(l => l.getClassName() === 'click-selection');
-    if (selectionLayer) this.instance.removeLayer(selectionLayer);
-    if (e.selected.length > 0) {
-      const currentLayer = this.selectClick.getLayer(e.selected[0]);
-      this.activeModalElement = new MapModal({
-        type: 'feature',
-        header: String(e.selected[0].getId()),
-        subheader: currentLayer.getClassName(),
-        attrTable: e.selected[0].getProperties()
-      });
-      this.activeModalElement.addEventListener('zoomBtnClick', this.zoomToFeat.bind(this));
-      selectionLayer = handleSelectionLyr(e.selected[0], currentLayer);
-      this.instance.addLayer(selectionLayer);
-    }
-  }
-
-  zoomToFeat(): void {
-    if (this.selectClick.getFeatures().item(0)) this.instance.getView().fit(this.selectClick.getFeatures().item(0).getGeometry());
-  }
-
-  selectedFeatAction(type: 'zoom' | 'outline'): void {
-    if (type === 'zoom' && this.selectClick.getFeatures().item(0)) this.instance.getView().fit(this.selectClick.getFeatures().item(0).getGeometry());
-
   }
 }
 

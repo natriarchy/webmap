@@ -1,28 +1,24 @@
 import Control from 'ol/control/Control';
 import BaseLayer from 'ol/layer/Base';
-import { compareValues, createElementWith, createFormField, generatePointSVG, generateTable, makeTitleCase } from '../../utils/fns-utility';
+import { compareValues, createElementWith, createFormField, generatePointSVG, generateTable, makeTitleCase } from '../utils/fns-utility';
 
 export class LayersManager extends Control {
-  name = 'layersmanager';
-  paneSectionContainer: HTMLElement;
+  readonly name = 'layersmanager';
   layersManagerList: HTMLElement;
   layersPaneActive = false;
   layerGroups: Set<string> = new Set();
-  constructor(
-    options: {
-      parentContainer: HTMLElement
-    }) {
-    super({element: options.parentContainer});
+  constructor(opts: { targetId?: string }) {
+    super({ element: document.createElement('div') });
     this.set('name', this.name);
-    this.paneSectionContainer = createElementWith(false, 'div', {class: 'pane-section-container '+this.name});
-    this.element.appendChild(this.paneSectionContainer);
-    this.layersManagerList = createElementWith(false, 'div', {class: 'layersmanager-list'});
+    this.element.className = 'pane-section-container '+this.name;
+    this.layersManagerList = document.createElement('div');
+    this.layersManagerList.className = 'lyrs-list';
+    this.element.appendChild(this.layersManagerList);
     setTimeout(this.intializeLayers.bind(this),1000, this.getMap());
   }
   intializeLayers(map: any): void {
     if (map) {
       this.generateLayers();
-      this.paneSectionContainer.appendChild(this.layersManagerList);
     } else {
       setTimeout(this.intializeLayers.bind(this), 1000, this.getMap());
     }
@@ -42,25 +38,25 @@ export class LayersManager extends Control {
       );
       const filterControl = createFormField('select', false, layerGrpsArray, {
         label: `<span class="webmap-btn no-interaction">${generatePointSVG('funnel-fill').outerHTML}</span>`,
-        group: 'lm-group-filter',
-        addClass: 'lm-group-filter full-width'
+        group: 'lyrs-group-filter',
+        addClass: 'lyrs-group-filter full-width'
       }).outerHTML;
       const sortControl = createFormField('radio', true, [{label: 'name'},{label: 'group'},{label: 'visible'}], {
           label: `<span class="webmap-btn no-interaction">${generatePointSVG('sort-alpha-down').outerHTML}</span>`,
-          group: 'lm-sort-controller',
-          addClass: 'lm-sort-controller hide-input'
+          group: 'lyrs-sort-controller',
+          addClass: 'lyrs-sort-controller hide-input'
       }).outerHTML;
       const controlForm = createElementWith(false, 'form', {
-        class: 'layersmanager-control',
+        class: 'lyrs-control',
         onchange: (e: InputEvent) => {
           const targetEl = e.target as HTMLElement;
-          if (targetEl.id === 'lm-group-filter') {
+          if (targetEl.id === 'lyrs-group-filter') {
             const groupFilterVal = (targetEl as HTMLSelectElement).value;
-            document.querySelectorAll('[data-layer-group]')
-              .forEach(e => (e as HTMLElement).className = (groupFilterVal === '' || e.getAttribute('data-layer-group') === groupFilterVal) ? 'layersmanager-item' : 'layersmanager-item hidden');
-          } else if ((targetEl as HTMLInputElement).name === 'lm-sort-controller') {
-            const currentVal = ((e.currentTarget as HTMLFormElement).elements.namedItem('lm-sort-controller') as RadioNodeList).value;
-            const valFixed = `data-layer-${currentVal === 'name' ? 'classname' : currentVal}`;
+            document.querySelectorAll('[data-lyr-group]')
+              .forEach(e => (e as HTMLElement).className = (groupFilterVal === '' || e.getAttribute('data-lyr-group') === groupFilterVal) ? 'lyrs-item' : 'lyrs-item hidden');
+          } else if ((targetEl as HTMLInputElement).name === 'lyrs-sort-controller') {
+            const currentVal = ((e.currentTarget as HTMLFormElement).elements.namedItem('lyrs-sort-controller') as RadioNodeList).value;
+            const valFixed = `data-lyr-${currentVal === 'name' ? 'classname' : currentVal}`;
             const sortChildren = Array.from(this.layersManagerList.children).sort(
               (a,b) => compareValues(a.getAttribute(valFixed)!,b.getAttribute(valFixed)!,currentVal === 'visible' ? 'desc' : 'asc')
             );
@@ -69,14 +65,14 @@ export class LayersManager extends Control {
         },
         innerHTML: filterControl + sortControl
       });
-      this.paneSectionContainer.prepend(controlForm);
+      this.element.prepend(controlForm);
     }
   }
   makeLayerListItem(lyr: BaseLayer): HTMLElement {
     const lyrClass = lyr.getClassName();
     const lyrGroup = lyr.get('group') as string;
     const nameSpan = createElementWith(false, 'label', {
-      class: 'layersmanager-item-label',
+      class: 'lyrs-item-label',
       for: lyrClass + '_visibility',
       innerHTML: `<span>${makeTitleCase(lyrClass, '-')}</span>${lyrGroup ? '<span class="group">'+lyrGroup+'</span>' : ''}`
     });
@@ -89,11 +85,11 @@ export class LayersManager extends Control {
       checked: lyr.getVisible(),
       onclick: (e: MouseEvent) => {
         const state = lyr.getVisible();
-        const layersItem = document.querySelector(`.layersmanager-item[data-layer-classname=${lyrClass}]`)!;
+        const layersItem = document.querySelector(`.lyrs-item[data-lyr-class=${lyrClass}]`)!;
         lyr.setVisible(!state);
-        layersItem.setAttribute('data-layer-visible',state.toString());
+        layersItem.setAttribute('data-lyr-visible',state.toString());
         if (['VectorTileLayer','VectorLayer'].includes(lyr.get('olLyrType'))) {
-          const legend = layersItem.querySelector('.layersmanager-legend')!;
+          const legend = layersItem.querySelector('.lyrs-legend')!;
           (legend as HTMLElement).style.display = state ? 'none' : 'flex';
           if (!state && !legend.hasChildNodes()) legend.appendChild(
               generateTable('legend', {featType: lyr.get('styleDetails')['featType'], classes: lyr.get('styleDetails')['classObject']})
@@ -102,7 +98,7 @@ export class LayersManager extends Control {
       }
     });
     const infoBtn = createElementWith(false, "button", {
-      class: 'layersmanager-item-info webmap-btn',
+      class: 'lyrs-item-info webmap-btn',
       type: 'button',
       title: lyrClass + ' More Info',
       innerHTML: generatePointSVG('info-circle-fill').outerHTML,
@@ -111,16 +107,16 @@ export class LayersManager extends Control {
       }
     });
     const legendDiv = createElementWith(false, "div", {
-      class: 'layersmanager-legend',
+      class: 'lyrs-legend',
       children: lyr.getVisible() && ['VectorTileLayer','VectorLayer'].includes(lyr.get('olLyrType')) ? [
         generateTable('legend', {featType: lyr.get('styleDetails')['featType'], classes: lyr.get('styleDetails')['classObject']})
       ] : []
     });
     return createElementWith(false, "div", {
-      'data-layer-classname': lyrClass,
-      'data-layer-group': lyrGroup,
-      'data-layer-visible': String(lyr.getVisible()),
-      class: 'layersmanager-item',
+      'data-lyr-class': lyrClass,
+      'data-lyr-group': lyrGroup,
+      'data-lyr-visible': String(lyr.getVisible()),
+      class: 'lyrs-item',
       children: [visibilityInput,nameSpan,infoBtn,legendDiv]
     });
   }

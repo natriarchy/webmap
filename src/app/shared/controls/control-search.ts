@@ -1,12 +1,11 @@
 import { Control } from 'ol/control';
-import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
+import { createElementWith, generatePointSVG } from '../utils/fns-utility';
 
 export class Search extends Control {
   name = 'search';
-  searchElement: HTMLDivElement;
-  searchIcon: SVGSVGElement;
-  searchInput: HTMLInputElement;
-  searchClearBtn: HTMLButtonElement;
+  icon_: SVGElement;
+  inputEl_: HTMLInputElement;
+  clearBtn_: HTMLButtonElement;
   currentFocus = -1;
   searchData: Array<any> = [
     "Channel",
@@ -37,43 +36,42 @@ export class Search extends Control {
     "What does CSS stands for?"
   ];
   // set search source to default to just an address lookup, else use a clasname of a layer to search
-  constructor(options: { parentContainer: HTMLElement, searchSource?: Array<{source: string, name: string}> }) {
-    super({ element: options.parentContainer });
+  constructor(opts: {
+    targetId?: string,
+    searchSource?: Array<{source: string, name: string}>
+  }) {
+    super({ element: document.createElement('div') });
     this.set('name', this.name);
-    this.searchIcon = generatePointSVG('search', false, {class:'search-icon'}) as SVGSVGElement;
-    this.searchInput = createElementWith(false, 'input', {
-      type: 'text',
-      id: 'search-input',
-      name: 'search-input',
-      placeholder: 'Search Any Address',
-      oninput: this.handleInput.bind(this),
-      onkeydown: this.handleKeyDown.bind(this)
-    });
-    this.searchClearBtn = createElementWith(false, 'button', {
-      type: 'button',
-      title: 'Clear Input',
-      id: 'search-clear',
-      class: 'webmap-btn ctrl',
-      onclick: this.clearInput.bind(this),
-      innerHTML: generatePointSVG('x',false).outerHTML
-    });
-    this.searchElement = createElementWith(false, 'div', {
-      class: 'search-element',
-      children: [this.searchIcon, this.searchInput, this.searchClearBtn]
-    });
 
-    this.element.appendChild(this.searchElement);
+    this.icon_ = generatePointSVG('search', false, {class:'search-icon'}) as SVGElement;
 
-    if (this.element.firstChild != this.searchElement) this.element.insertBefore(document.createElement('hr'), this.searchElement);
+    this.inputEl_ = document.createElement('input');
+    this.inputEl_.setAttribute('type','text');
+    this.inputEl_.id = 'search-input';
+    this.inputEl_.name = 'search-input';
+    this.inputEl_.placeholder = 'Search Any Address';
+    this.inputEl_.oninput = this.handleInput.bind(this);
+    this.inputEl_.onkeydown = this.handleKeyDown.bind(this);
+
+    this.clearBtn_ = document.createElement('button');
+    this.clearBtn_.setAttribute('type', 'button');
+    this.clearBtn_.title = 'Clear Input';
+    this.clearBtn_.id = 'search-clear';
+    this.clearBtn_.className = 'webmap-btn ctrl';
+    this.clearBtn_.onclick = this.clearInput.bind(this);
+    this.clearBtn_.appendChild(generatePointSVG('x',false));
+
+    this.element.className = 'search-element';
+    this.element.append(this.icon_, this.inputEl_, this.clearBtn_);
   }
   handleInput(e: any): void | boolean {
     const val = e.target.value;
     this.closeAllLists();
     if (!val || val === '') {
-      this.searchClearBtn.style.display = 'none';
+      this.clearBtn_.style.display = 'none';
       return false;
     }
-    this.searchClearBtn.style.display = 'flex';
+    this.clearBtn_.style.display = 'flex';
     this.currentFocus = -1;
     const results = createElementWith(false, 'div', {id: e.target.id + "-results", class: 'autocomplete-items'});
     e.target.parentNode.appendChild(results);
@@ -82,7 +80,7 @@ export class Search extends Control {
         const newDiv = createElementWith(false, 'div', {
           innerHTML: '<strong>' + this.searchData[i].substr(0, val.length) + '</strong>',
           onclick:  (evt: MouseEvent) => {
-            this.searchInput.value = newDiv.getElementsByTagName('input')[0].value;
+            this.inputEl_.value = newDiv.getElementsByTagName('input')[0].value;
             this.closeAllLists();
           }
         });
@@ -130,15 +128,15 @@ export class Search extends Control {
     }
   }
   clearInput(): void {
-    this.searchInput.value = '';
-    this.searchClearBtn.style.display = 'none';
+    this.inputEl_.value = '';
+    this.clearBtn_.style.display = 'none';
     this.closeAllLists();
   }
   /* close all autocomplete lists, except one passed as arg */
   closeAllLists(currentEl?: HTMLElement): void {
     const items = document.getElementsByClassName("autocomplete-items");
     for (let i = 0; i < items.length; i++) {
-      if (currentEl != items[i] && currentEl != this.searchInput) {
+      if (currentEl != items[i] && currentEl != this.inputEl_) {
         items[i].parentNode?.removeChild(items[i]);
       }
     }

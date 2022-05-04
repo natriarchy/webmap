@@ -1,4 +1,4 @@
-import { createElementWith, generatePointSVG } from "../../utils/fns-utility";
+import { createElementWith, generatePointSVG } from "../utils/fns-utility";
 
 export class MapModal {
   type: 'feature' | 'info' = 'feature';

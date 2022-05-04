@@ -74,7 +74,7 @@ export const generatePointSVG = (
   shape: BSIconOptions,
   mapIcon = false,
   setAttributes?:  {[prop: string]: any }
-  ): SVGSVGElement => {
+  ): SVGElement | HTMLElement => {
     const svgEl = createElementWith(true, 'svg', {
         'xmlns': 'http://www.w3.org/2000/svg',
         'viewBox': '0 0 16 16',

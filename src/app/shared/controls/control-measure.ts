@@ -3,17 +3,19 @@ import { FeatureLike } from 'ol/Feature';
 import { Circle as CircleGeom, LineString, Point, Polygon } from 'ol/geom';
 import GeometryType from 'ol/geom/GeometryType';
 import { Draw } from 'ol/interaction';
-import { Vector as VectorLayer } from 'ol/layer';
-import { Vector as VectorSource } from 'ol/source';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
 import { getArea, getLength } from 'ol/sphere';
 import { Stroke, Style } from 'ol/style';
 import tippy from 'tippy.js';
-import { MapToast } from '../elements/map-toast.class';
-import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
-import { generateMeasureStyle } from '../../utils/generate-style';
+import { createElementWith, generatePointSVG } from '../utils/fns-utility';
+import { generateMeasureStyle } from '../utils/generate-style';
+import { MapToast } from '../classes/map-toast.class';
 
 export class Measure extends Control {
-  name = 'measure';
+  readonly name = 'measure-tool';
+  button_: HTMLElement;
+  toast_: MapToast;
   tippyDropdown: any;
   drawInteraction: Draw | undefined;
   drawType: 'Distance' | 'Area' | 'Radius' = 'Distance';
@@ -27,11 +29,8 @@ export class Measure extends Control {
   tipStyle: Style;
   tipPoint: any;
   segmentStyles: Array<Style>;
-  constructor(
-    options: {
-      parentContainer: HTMLElement
-    }) {
-    super({ element: options.parentContainer });
+  constructor(opts: { targetId?: string }) {
+    super({ element: document.createElement('div') });
     this.set('name', this.name);
 
     this.baseStyle = generateMeasureStyle('base');
@@ -41,16 +40,18 @@ export class Measure extends Control {
     this.tipStyle = generateMeasureStyle('tip');
     this.segmentStyles = [this.segmentStyle];
 
-    const ctrlBtn = createElementWith(false, 'button', {
-      title: 'Measure Distance, Radius, or Area',
-      class: 'webmap-btn ctrl measure-toggle',
-      'aria-label': 'Ruler Icon, Open Measure Tool Menu',
-      innerHTML: generatePointSVG('rulers').outerHTML,
-      onclick: (e: any) => e.preventDefault()
-    });
-    this.element.appendChild(ctrlBtn);
+    this.button_ = document.createElement('button');
+    this.button_.title = 'Measure Distance, Radius, or Area';
+    this.button_.setAttribute('type', 'button');
+    this.button_.appendChild(generatePointSVG('rulers'));
+    this.button_.onclick = (e) => e.preventDefault();
 
-    this.tippyDropdown = tippy(ctrlBtn, {
+    this.element.className = 'ol-unselectable ol-custom-control';
+    this.element.appendChild(this.button_);
+
+    this.toast_ = new MapToast();
+
+    this.tippyDropdown = tippy(this.button_, {
       content: this.makeDropdown(),
       appendTo: this.element,
       interactive: true,
@@ -61,8 +62,8 @@ export class Measure extends Control {
       animation: "shift-toward-extreme",
       theme: "map-light",
       trigger: "click focus",
-      onShow(e) { ctrlBtn.classList.add('dropdown-open','no-interaction'); },
-      onHide(e) { ctrlBtn.classList.remove('dropdown-open','no-interaction'); }
+      onShow(e) { e.reference.classList.add('dropdown-open','no-interaction'); },
+      onHide(e) { e.reference.classList.remove('dropdown-open','no-interaction'); }
     });
   }
   makeDropdown(): HTMLElement {
@@ -108,8 +109,9 @@ export class Measure extends Control {
     let tip = idleTip;
 
     // Generate Toast Element and give a click listener to exit measure
-    const measureToast = new MapToast({tone: 'action', header: `Click on Map to Measure ${drawType}`, body: 'Click Here or Press ESC Key to Exit'});
-    (measureToast.toastElement.firstElementChild as HTMLElement).onclick = (e: any) => this.endMeasure();
+    this.toast_
+      .make({tone: 'action', header: `Click on Map to Measure ${drawType}`, body: 'Click Here or Press ESC Key to Exit'})
+      .on('click', this.endMeasure.bind(this));
 
     const map = this.getMap()!;
     map.getAllLayers().find(l => l.getClassName() === 'measure-layer')
@@ -135,14 +137,13 @@ export class Measure extends Control {
     map.addInteraction(this.drawInteraction);
   }
   endMeasure(): void {
-    if (document.getElementById('toast-element')) document.getElementById('toast-element')!.remove();
     if (this.tippyDropdown) this.tippyDropdown.hide();
     document.removeEventListener('keyup', this.handleEscapeKey);
+    this.toast_.destroy();
 
     const map = this.getMap()!;
     map.removeInteraction(this.drawInteraction!);
     map.removeLayer(map.getAllLayers().find(l => l.getClassName() === 'measure-layer')!);
-
     this.drawInteraction = undefined;
     this.measureSource.clear();
     ['AllowSelectHover','AllowSelectClick'].forEach(s => map.set(s, true));

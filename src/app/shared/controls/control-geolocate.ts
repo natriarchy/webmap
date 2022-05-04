@@ -4,30 +4,28 @@ import Point from 'ol/geom/Point';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
-import { generateIconStyle } from '../../utils/generate-style';
-import { createElementWith, generatePointSVG } from '../../utils/fns-utility';
-import { MapToast } from '../elements/map-toast.class';
-import { formatDMS } from '../../utils/fns-google';
+import { generateIconStyle } from '../utils/generate-style';
+import { generatePointSVG } from '../utils/fns-utility';
+import { MapToast } from '../classes/map-toast.class';
+import { formatDMS } from '../utils/fns-google';
 import { toLonLat } from 'ol/proj';
 
 export class Geolocate extends Control {
-  name = 'geolocation';
+  readonly name = 'geolocation';
+  button_: HTMLElement;
+  toast_: MapToast;
   geolocation: Geolocation;
   positionFeature: Feature<any>;
   accuracyFeature: Feature<any>;
   geolocationLayer: VectorLayer<any>;
   trackingActive = false;
-  constructor(
-    options: {
-      parentContainer: HTMLElement
-    }) {
-    super({
-      element: options.parentContainer
-    });
+  constructor(opts: { targetId?: string }) {
+    super({ element: document.createElement('div') });
     this.set('name', this.name);
     this.geolocation = new Geolocation({
       trackingOptions: { enableHighAccuracy: true }
     });
+    this.toast_ = new MapToast();
     this.positionFeature = new Feature();
     this.accuracyFeature = new Feature();
     this.positionFeature.setId('Your Location');
@@ -38,14 +36,14 @@ export class Geolocate extends Control {
         features: [this.accuracyFeature, this.positionFeature]
       })
     });
-    const newBtn = createElementWith(false, 'button', {
-      title: 'Find My Location',
-      class: 'webmap-btn ctrl geolocate',
-      'aria-label': 'Circle with a Dot, Use to Find Current Location on Map',
-      innerHTML: generatePointSVG('geo-alt-fill').outerHTML,
-      onclick: this.handleClick.bind(this)
-    });
-    this.element.appendChild(newBtn);
+    this.button_ = document.createElement('button');
+    this.button_.title = 'Find My Location';
+    this.button_.setAttribute('type', 'button');
+    this.button_.appendChild(generatePointSVG('geo-alt-fill'));
+    this.button_.onclick = this.handleClick.bind(this);
+
+    this.element.className = 'ol-unselectable ol-custom-control';
+    this.element.appendChild(this.button_);
   }
   handleClick(event: MouseEvent): void {
     event.preventDefault();
@@ -55,7 +53,7 @@ export class Geolocate extends Control {
       this.geolocation.setTracking(true);
       this.geolocation.setProjection(this.getMap()!.getView().getProjection());
       this.trackingActive = true;
-      new MapToast({tone: 'info',header: 'Finding Your Location',timer: 'indeterminate'});
+      this.toast_.make({tone: 'info',header: 'Finding Your Location',timer: 'indeterminate'});
 
       this.geolocation.once('change:position', (e) => {
         const locationPt = this.geolocation.getPosition();
@@ -70,7 +68,7 @@ export class Geolocate extends Control {
             zoom: 5,
             duration: 400
           });
-          new MapToast({tone: 'info', header: 'Location: ', value: formatDMS(toLonLat(locationPt)), timer: 'short'}).addClick('value');
+          this.toast_.make({tone: 'info', header: 'Location: ', value: formatDMS(toLonLat(locationPt)), timer: 'short'}).addClick('value');
         };
       });
       this.geolocation.once('change:accuracyGeometry', (e) => {

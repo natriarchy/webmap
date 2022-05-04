@@ -178,7 +178,7 @@ export type SettingType<T extends keyof InitVals> = {
 
 export interface InitSettings {
   "AllowSelectHover": SettingType<"checkbox">;
-  "AllowSelectClick": SettingType<"checkbox">;
+  "AllowFeatureClickModal": SettingType<"checkbox">;
   "ShowCursorCoords": SettingType<"checkbox">;
 }
 export interface SettingsOptions extends InitSettings {
@@ -189,4 +189,12 @@ export interface MapTableOpts {
   'basic': {header: string; subheader: string;};
   'attribute': {attributes: { [key: string]: any }};
   'legend': {featType: 'polygon'|'point'|'line'; classes: StyleDetailObj['classObject']};
+}
+export interface ToastOpts {
+  tone: 'warning' | 'info' | 'action';
+  header: string;
+  fn?: (el: any) => any;
+  body?: any;
+  timer?: 'short' | 'long' | 'indeterminate';
+  value?: string;
 }
