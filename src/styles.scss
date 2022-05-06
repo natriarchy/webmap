@@ -472,6 +472,22 @@ body {
     }
 }
 
+input[type="text"] {
+    &:-ms-input-placeholder,
+    &::-ms-input-placeholder,
+    &::placeholder {
+        -webkit-text-fill-color: rgb(150, 150, 150) !important;
+        color: rgb(150, 150, 150) !important;
+        font-weight: 300 !important;
+    }
+}
+
+:placeholder-shown {
+    -webkit-text-fill-color: rgb(150, 150, 150) !important;
+    color: rgb(150, 150, 150) !important;
+    font-weight: 300 !important;
+}
+
 .autocomplete-items {
     position: fixed;
     top: calc(0.55rem + 2.85rem);

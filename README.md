@@ -14,23 +14,25 @@ Rather than using angular features, I'm trying to use the OpenLayers package and
 
 ## Custom Controls:
 - BasemapToggle
-  - [map-controls/control-basemap.class](src/app/shared/components/map-controls/control-basemap.class.ts)
+  - [controls/control-basemap](src/app/shared/controls/control-basemap.ts)
+- CtrlPaneEl
+  - [controls/control-pane-el](src/app/shared/controls/control-pane-el.ts)
+- CtrlToolbarEl
+  - [controls/control-toolbar-el](src/app/shared/controls/control-toolbar-el.ts)
 - Fullscreen
-  - [map-controls/control-fullscreen.class](src/app/shared/components/map-controls/control-fullscreen.class.ts)
+  - [controls/control-fullscreen](src/app/shared/controls/control-fullscreen.ts)
 - Geolocate
-  - [map-controls/control-geolocate.class](src/app/shared/components/map-controls/control-geolocate.class.ts)
+  - [controls/control-geolocate](src/app/shared/controls/control-geolocate.ts)
 - LayersManager
-  - [map-controls/control-layersmanager.class](src/app/shared/components/map-controls/control-layersmanager.class.ts)
-- LeftPane
-  - [map-controls/control-pane-left.class](src/app/shared/components/map-controls/control-pane-left.class.ts)
+  - [controls/control-layersmanager](src/app/shared/controls/control-layersmanager.ts)
 - Measure
-  - [map-controls/control-measure.class](src/app/shared/components/map-controls/control-measure.class.ts)
+  - [controls/control-measure](src/app/shared/controls/control-measure.ts)
 - Search
-  - [map-controls/control-search.class](src/app/shared/components/map-controls/control-search.class.ts)
+  - [controls/control-search](src/app/shared/controls/control-search.ts)
 - Settings
-  - [map-controls/control-settings.class](src/app/shared/components/map-controls/control-settings.class.ts)
+  - [controls/control-settings](src/app/shared/controls/control-settings.ts)
 - ZoomExtentGroup
-  - [map-controls/control-zoom-extent.class](src/app/shared/components/map-controls/control-zoom-extent.class.ts)
+  - [controls/control-zoom-extent](src/app/shared/controls/control-zoom-extent.ts)
 
 ## Important Utilities
 - See the [shared/utils](src/app/shared/utils/) folder for the functions a lot of the important work

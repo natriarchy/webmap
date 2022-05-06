@@ -33,7 +33,7 @@ export function createFormField<T extends 'checkbox' | 'radio' | 'select' | 'but
     inputHidden: boolean,
     inputValues: Array<{label: string; value?: boolean | string | number;}>,
     wrapper: T extends 'checkbox' ? undefined : {label: string, group: string, addClass?: string},
-    fn?: (e: any) => any
+    fn?: {type: 'click'|'change', fn: (e: any) => any}
   ): HTMLElement {
     const fixId = (id: string | undefined) => id ? id.replace(/(_|\s|\&)/gi, '-').toLowerCase() : undefined;
     const makeInputEls = (label: string, value: any): Array<HTMLElement> => [
@@ -47,7 +47,8 @@ export function createFormField<T extends 'checkbox' | 'radio' | 'select' | 'but
         name: fixId(wrapper?.group),
         checked: value || false,
         value: value || label,
-        onclick: fn ? fn : undefined
+        onclick: fn?.type === 'click' ? fn.fn : undefined,
+        onchange: fn?.type === 'change' ? fn.fn : undefined
       })
     ];
     const fieldEls = inputType === 'select' && wrapper

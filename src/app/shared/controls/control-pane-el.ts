@@ -31,10 +31,7 @@ export class ControlPaneEl extends Control {
         return;
       }
     });
-    observer.observe(document, {
-      childList: true,
-      subtree: true
-    });
+    observer.observe(document, {childList: true, subtree: true});
 
     const sectionTitle_ = document.createElement('h3');
     sectionTitle_.id = 'pane-section-title';

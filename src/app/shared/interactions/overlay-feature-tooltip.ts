@@ -34,13 +34,20 @@ export class FeatureTooltip extends Overlay {
       style: null
     });
     this.selectInt.on('select', this.handleSelect.bind(this));
-    setTimeout(() => {
-      if (this.getMap()) {
+    const observer = new MutationObserver((mutations, obs) => {
+      if (document.querySelector('.ol-overlaycontainer-stopevent')) {
         this.getMap()!.addInteraction(this.pointerInt);
         this.getMap()!.addInteraction(this.selectInt);
         console.info('Added Feat Hover Overlay and Interactions to Map');
+        obs.disconnect();
+        obs.takeRecords();
+        return;
       }
-    }, 500);
+    });
+    observer.observe(document, {
+      childList: true,
+      subtree: true
+    });
   }
   private handlePointerMove(e: MapBrowserEvent<any>): void {
     if (touchOnly(e)) return;
@@ -54,7 +61,7 @@ export class FeatureTooltip extends Overlay {
     if (e.selected.length === 0) {
       pointerTooltipEl.innerHTML === '';
     } else if (e.selected[0] !== e.deselected[0]) {
-      const layerName = this.selectInt.getLayer(e.selected[0]).getClassName();
+      const layerName = this.selectInt.getLayer(e.selected[0]) ?  this.selectInt.getLayer(e.selected[0]).getClassName() : 'Layer';
       pointerTooltipEl.replaceChildren(
         this.createElementWith('table', {
           class: 'map-table basic',

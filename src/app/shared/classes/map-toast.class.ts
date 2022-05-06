@@ -10,7 +10,7 @@ export class MapToast {
     warning: 'exclamation-triangle-fill'
   };
   constructor() {
-    if (document.getElementById('toast-element')) {
+    if (!document.getElementById('toast-element')) {
       this.element = document.createElement('section');
       this.element.id = 'toast-element';
       document.querySelector('div.ol-overlaycontainer-stopevent')!.append(this.element);
@@ -59,6 +59,7 @@ export class MapToast {
     return this;
   }
   public destroy(timerType: 'immediate' | 'short' | 'long' | 'indeterminate' = 'immediate'): void {
+    const timerEl = document.getElementById('toast-timer')!;
     const animationopts: {[key: string]: KeyframeAnimationOptions} = {
       'immediate': {duration: 0},
       'short': {duration: 3000},
@@ -74,7 +75,6 @@ export class MapToast {
     const basicTimer: Array<Keyframe> = [{width: '100%'},{width: '0%'}];
 
     if (timerType !== 'immediate') {
-      const timerEl = document.getElementById('toast-timer')!;
       timerEl.style.display = 'block';
       timerEl.firstElementChild!.animate(
         timerType === 'indeterminate' ? indeterminateTimer : basicTimer,
@@ -86,7 +86,7 @@ export class MapToast {
       const animation = this.element.animate([{opacity: 1},{opacity: 0}],{delay: timing * 0.9, duration: timing * 0.1});
       animation.onfinish = (e: any) => {
         this.element.classList.add('hidden');
-        document.getElementById('toast-timer')!.style.display = 'none';
+        timerEl.style.display = 'none';
       };
     }
   }

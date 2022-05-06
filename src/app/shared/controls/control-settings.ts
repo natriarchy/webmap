@@ -27,7 +27,7 @@ export class Settings extends Control {
       false,
       s[1].options,
       s[1].type === 'checkbox' ? undefined : {label: s[1].outerLabel, group: 'set_'+s[0].replace(' ', ''), addClass: undefined},
-      s[1].fn
+      s[1].fn ? {type: 'click', fn: s[1].fn} : undefined
     ));
     settingEls.forEach(s => this.element.appendChild(s));
   }

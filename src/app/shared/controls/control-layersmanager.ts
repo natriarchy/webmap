@@ -14,61 +14,68 @@ export class LayersManager extends Control {
     this.layersManagerList = document.createElement('div');
     this.layersManagerList.className = 'lyrs-list';
     this.element.appendChild(this.layersManagerList);
-    setTimeout(this.intializeLayers.bind(this),1000, this.getMap());
-  }
-  intializeLayers(map: any): void {
-    if (map) {
-      this.generateLayers();
-    } else {
-      setTimeout(this.intializeLayers.bind(this), 1000, this.getMap());
-    }
+    const observer = new MutationObserver((mutations, obs) => {
+      const lyrsDiv_ = document.querySelector('.ol-layers');
+      if (lyrsDiv_ && lyrsDiv_.children.length > 1) {
+        this.generateLayers();
+        obs.disconnect();
+        obs.takeRecords();
+        return;
+      }
+    });
+    observer.observe(document, { childList: true, subtree: true });
   }
   generateLayers(): void {
     this.getMap()!.getAllLayers()
       .filter((l,i,a) => !!l.get('group'))
       .forEach((l,i,a) => {
-        const layerListItem = this.makeLayerListItem(l);
+        const layerListItem = this.makeLayerListItem(l,i);
         this.layerGroups.add(l.get('group'));
         this.layersManagerList.appendChild(layerListItem);
       }
     );
     if (this.layerGroups.size > 0) {
-      const layerGrpsArray = [{label: '--Show All Layers--', value: ''}].concat(
+      const layerGrpsArray = [{label: '--Show All Layers--', value: ''},{label: '--Visible Layers--', value: 'true'}].concat(
         Array.from(this.layerGroups).sort().map(lg => ({label: lg, value: lg}))
       );
       const filterControl = createFormField('select', false, layerGrpsArray, {
         label: `<span class="webmap-btn no-interaction">${generatePointSVG('funnel-fill').outerHTML}</span>`,
         group: 'lyrs-group-filter',
         addClass: 'lyrs-group-filter full-width'
-      }).outerHTML;
+      });
       const sortControl = createFormField('radio', true, [{label: 'name'},{label: 'group'},{label: 'visible'}], {
-          label: `<span class="webmap-btn no-interaction">${generatePointSVG('sort-alpha-down').outerHTML}</span>`,
-          group: 'lyrs-sort-controller',
-          addClass: 'lyrs-sort-controller hide-input'
-      }).outerHTML;
+        label: `<span class="webmap-btn no-interaction">${generatePointSVG('sort-alpha-down').outerHTML}</span>`,
+        group: 'lyrs-sort-controller',
+        addClass: 'lyrs-sort-controller hide-input'
+      });
       const controlForm = createElementWith(false, 'form', {
         class: 'lyrs-control',
         onchange: (e: InputEvent) => {
           const targetEl = e.target as HTMLElement;
           if (targetEl.id === 'lyrs-group-filter') {
             const groupFilterVal = (targetEl as HTMLSelectElement).value;
-            document.querySelectorAll('[data-lyr-group]')
-              .forEach(e => (e as HTMLElement).className = (groupFilterVal === '' || e.getAttribute('data-lyr-group') === groupFilterVal) ? 'lyrs-item' : 'lyrs-item hidden');
+            if (['','true'].includes(groupFilterVal)) {
+              document.querySelectorAll('[data-visible]')
+                .forEach(e => (e as HTMLElement).className = (groupFilterVal === '' || e.getAttribute('data-visible') === groupFilterVal) ? 'lyrs-item' : 'lyrs-item hidden');
+            } else {
+              document.querySelectorAll('[data-group]')
+                .forEach(e => (e as HTMLElement).className = e.getAttribute('data-group') === groupFilterVal ? 'lyrs-item' : 'lyrs-item hidden');
+            }
           } else if ((targetEl as HTMLInputElement).name === 'lyrs-sort-controller') {
             const currentVal = ((e.currentTarget as HTMLFormElement).elements.namedItem('lyrs-sort-controller') as RadioNodeList).value;
-            const valFixed = `data-lyr-${currentVal === 'name' ? 'classname' : currentVal}`;
+            const valFixed = `data-${currentVal === 'name' ? 'class' : currentVal}`;
             const sortChildren = Array.from(this.layersManagerList.children).sort(
               (a,b) => compareValues(a.getAttribute(valFixed)!,b.getAttribute(valFixed)!,currentVal === 'visible' ? 'desc' : 'asc')
             );
             this.layersManagerList.replaceChildren(...sortChildren);
           }
         },
-        innerHTML: filterControl + sortControl
+        children: [filterControl, sortControl]
       });
       this.element.prepend(controlForm);
     }
   }
-  makeLayerListItem(lyr: BaseLayer): HTMLElement {
+  makeLayerListItem(lyr: BaseLayer, baseOrder: number): HTMLElement {
     const lyrClass = lyr.getClassName();
     const lyrGroup = lyr.get('group') as string;
     const nameSpan = createElementWith(false, 'label', {
@@ -85,9 +92,9 @@ export class LayersManager extends Control {
       checked: lyr.getVisible(),
       onclick: (e: MouseEvent) => {
         const state = lyr.getVisible();
-        const layersItem = document.querySelector(`.lyrs-item[data-lyr-class=${lyrClass}]`)!;
+        const layersItem = document.querySelector(`.lyrs-item[data-class="${lyrClass}"]`)!;
         lyr.setVisible(!state);
-        layersItem.setAttribute('data-lyr-visible',state.toString());
+        layersItem.setAttribute('data-visible',String(!state));
         if (['VectorTileLayer','VectorLayer'].includes(lyr.get('olLyrType'))) {
           const legend = layersItem.querySelector('.lyrs-legend')!;
           (legend as HTMLElement).style.display = state ? 'none' : 'flex';
@@ -113,9 +120,9 @@ export class LayersManager extends Control {
       ] : []
     });
     return createElementWith(false, "div", {
-      'data-lyr-class': lyrClass,
-      'data-lyr-group': lyrGroup,
-      'data-lyr-visible': String(lyr.getVisible()),
+      'data-class': lyrClass,
+      'data-group': lyrGroup,
+      'data-visible': String(lyr.getVisible()),
       class: 'lyrs-item',
       children: [visibilityInput,nameSpan,infoBtn,legendDiv]
     });
