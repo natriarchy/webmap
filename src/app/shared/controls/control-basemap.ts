@@ -24,7 +24,7 @@ export class BasemapToggle extends Control {
     this.button_ = document.createElement('button');
     this.button_.title = 'Set Basemap';
     this.button_.setAttribute('type', 'button');
-    this.button_.appendChild(generatePointSVG('map-fill'));
+    this.button_.appendChild(generatePointSVG('map-fill', false));
     this.button_.onclick = this.handleClick.bind(this);
 
     this.element.className = 'ol-unselectable ol-custom-control';

@@ -38,12 +38,12 @@ export class ToastMessage extends Control {
     this.element.innerHTML = `
       <div class="toast-container">
         <div class="toast-header">
-          <span class="toast-icon webmap-btn no-interaction">${generatePointSVG(this.toneIcon[opts.tone]).outerHTML}</span>
+          <span class="toast-icon webmap-btn no-interaction">${generatePointSVG(this.toneIcon[opts.tone], false).outerHTML}</span>
           <span class="toast-title">
             ${opts.header}
             ${opts.value ? this.valueInput?.outerHTML + '<label for="toastValueInput">' + opts.value + '</label>' : ''}
           </span>
-          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-element').classList.add('hidden');">${generatePointSVG('x').outerHTML}</button>
+          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-element').classList.add('hidden');">${generatePointSVG('x', false).outerHTML}</button>
         </div>
         ${opts.body ? '<div class="toast-body">'+opts.body+'</div>' : ''}
         ${opts.timer ? '<div id="toast-timer"><div></div></div>' : ''}

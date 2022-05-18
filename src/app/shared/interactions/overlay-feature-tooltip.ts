@@ -30,7 +30,8 @@ export class FeatureTooltip extends Overlay {
 
         return pointerMove(e) && checkCanvas && checkSetting && checkMWheel && !touchOnly(e);
       },
-      hitTolerance: 10,
+      filter: (f,l) => !['click-selection','geolocation'].includes(l.getClassName()),
+      hitTolerance: 5,
       style: null
     });
     this.selectInt.on('select', this.handleSelect.bind(this));
@@ -54,18 +55,22 @@ export class FeatureTooltip extends Overlay {
     const checkCanvas = (e.originalEvent.target.tagName === 'CANVAS' || e.originalEvent.target.className === 'ol-overlay-container ol-selectable');
     const checkSetting = (e.map.get('AllowSelectHover') !== false);
     const isOK = checkSetting && checkCanvas && !e.dragging;
-    e.map.getOverlayById('pointer-tooltip').setPosition((isOK && e.map.hasFeatureAtPixel(e.pixel)) ? e.coordinate : undefined);
+    const hasFeat = isOK && e.map.hasFeatureAtPixel(e.pixel,{layerFilter: l => !['click-selection','geolocation'].includes(l.getClassName())});
+    e.map.getTargetElement().style.cursor = hasFeat ? 'pointer' : 'initial';
+    e.map.getOverlayById('pointer-tooltip').setPosition(hasFeat ? e.coordinate : undefined);
   }
   private handleSelect(e: SelectEvent): void {
     const pointerTooltipEl = this.element;
     if (e.selected.length === 0) {
       pointerTooltipEl.innerHTML === '';
+      e.mapBrowserEvent.map.getOverlayById('pointer-tooltip').setPosition(undefined);
     } else if (e.selected[0] !== e.deselected[0]) {
-      const layerName = this.selectInt.getLayer(e.selected[0]) ?  this.selectInt.getLayer(e.selected[0]).getClassName() : 'Layer';
+      const lyr = this.selectInt.getLayer(e.selected[0]);
+      const keyProp = lyr ? lyr.get('styleDetails').opts.keyProp : '';
       pointerTooltipEl.replaceChildren(
         this.createElementWith('table', {
           class: 'map-table basic',
-          innerHTML: `<tr><th>${this.makeTitleCase(layerName,'-')}</th></tr><tr><td>${e.selected[0].getId() as string}</td></tr>`
+          innerHTML: `<tr><th>${this.makeTitleCase(lyr.getClassName(),'-')}</th></tr><tr><td>${(e.selected[0].getId()||e.selected[0].get(keyProp)) as string}</td></tr>`
         })
       );
     }

@@ -27,7 +27,7 @@ export class ZoomExtentGroup extends Control {
         const button_ = document.createElement('button');
         button_.title = b[0];
         button_.setAttribute('type', 'button');
-        button_.appendChild(generatePointSVG(b[1] as BSIconOptions));
+        button_.appendChild(generatePointSVG(b[1] as BSIconOptions, false));
         button_.onclick = this.handleClick.bind(this);
 
         return button_;

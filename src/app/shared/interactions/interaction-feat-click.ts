@@ -18,7 +18,7 @@ export class FeatClickModal extends Select {
 
         return singleClick(e) && checkCanvas && checkSetting;
       },
-      filter: (f,l) => l.getClassName() !== (this.get('selectLyrClass') || 'click-selection'),
+      filter: (f,l) => ![(this.get('selectLyrClass') || 'click-selection'),'geolocation'].includes(l.getClassName()),
       hitTolerance: 10,
       style: null
     });
@@ -34,7 +34,8 @@ export class FeatClickModal extends Select {
     if (selectionLayer) map.removeLayer(selectionLayer);
     if (e.selected.length > 0) {
       const currentLayer = this.getLayer(e.selected[0]);
-      this.activeModalEl = this.makeModal(String(e.selected[0].getId()), currentLayer.getClassName(), e.selected[0].getProperties());
+      const keyProp = currentLayer.get('styleDetails').opts.keyProp;
+      this.activeModalEl = this.makeModal(String(e.selected[0].getId() || e.selected[0].get(keyProp)), currentLayer.getClassName(), e.selected[0].getProperties());
       selectionLayer = this.handleSelectionLyr(e.selected[0], currentLayer);
       map.addLayer(selectionLayer);
     }
@@ -87,7 +88,7 @@ export class FeatClickModal extends Select {
 
   private handleSelectionLyr(selectedFeat: Feature<any>, selectedLayer: Layer<any, any>): Layer<any, any> {
     const selectionStyle = (f: any) => f.getId() === selectedFeat.getId() ? new Style({stroke: new Stroke({color: 'rgba(0,255,255,0.7)', width: 4})}) : undefined;
-    if (selectedLayer.get('olLyrType') === 'VectorTileLayer') {
+    if (selectedLayer.get('lyrType') === 'VectorTileLayer') {
       return new VectorTileLayer({className: 'click-selection', renderMode: 'vector', source: selectedLayer.getSource(), style: selectionStyle, zIndex: 10});
     } else {
       return new VectorLayer({className: 'click-selection', source: selectedLayer.getSource(), style: selectionStyle, zIndex: 10});

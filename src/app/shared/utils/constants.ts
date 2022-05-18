@@ -50,6 +50,7 @@ export type BSIconOptions =
   'fullscreen-exit' |
   'funnel-fill' |
   'geo-alt-fill' |
+  'geo-alt-filled' |
   'house' |
   'layers' |
   'list' |
@@ -85,6 +86,10 @@ export const svgPath: {[key: string]: string} = {
   'funnel-fill': `
     <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/>
     `,
+  'geo-alt-filled': `
+    <path style="fill:white;stroke:black;stroke-width:0.33px;" d="M6,15.772s5.835-5.546,5.835-9.755C11.835,2.785,9.223,.165,6,.165S.165,2.785,.165,6.018C.165,10.226,6,15.772,6,15.772Z"/>
+    <circle fill="rgba(0,0,0,0.33)" stroke="rgba(0,0,0,0.33)" cx="6" cy="6" r="2.25"/>
+  `,
   'geo-alt-fill': `
     <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
     `,

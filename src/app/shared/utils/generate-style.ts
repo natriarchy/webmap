@@ -1,168 +1,10 @@
 import { Feature } from 'ol';
-import { FeatureLike } from 'ol/Feature';
 import { Layer, Vector as VectorLayer, VectorTile as VectorTileLayer } from 'ol/layer';
 import { Fill, Icon, RegularShape, Stroke, Style, Text } from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
+import { LyrConstants } from '../models';
 import { BSIconOptions } from './constants';
-import { convertToHexOpacity, generatePointSVG, getContrastYIQ } from './fns-utility';
-import { ClassObjectBase, StyleDetailObj } from '../models';
-
-
-export function basicStyleFunction(
-  feature: FeatureLike,
-  resolution: number,
-  styleDetail: StyleDetailObj,
-  lyr: {name: string; type: 'TileLayer' | 'VectorTileLayer' | 'VectorLayer'}
-): Style | Array<Style> {
-  const featType = feature.getGeometry()?.getType();
-  const featValue: string | undefined = ['ramp-basic','ramp-special'].includes(styleDetail.type)
-    ? feature.get(styleDetail.keyProp!)
-    : undefined;
-  const baseClassObj: ClassObjectBase = Object.keys(styleDetail.classObject!).length > 1
-    ? styleDetail.classObject![featValue ? featValue : 'Other'] as ClassObjectBase
-    : Object.values(styleDetail.classObject!)[0];
-  let newStyleObj: Style;
-  if (lyr.type === 'VectorLayer') feature.get(styleDetail.keyProp!) ? (feature as Feature<any>).setId(feature.get(styleDetail.keyProp!)) : (feature as Feature<any>).setId('N/A');
-  if (featType === 'Point' && styleDetail.type !== 'ramp-special') {
-    newStyleObj = new Style({
-      image: styleDetail.icon ? generateIconStyle(styleDetail.icon.src ?? 'geo-alt-fill', styleDetail.icon.size, styleDetail.icon.color ?? baseClassObj.fill) : undefined
-    });
-  } else if (featType === 'Point') {
-    newStyleObj = new Style({
-      image: generateIconStyle(styleDetail.classObject![featValue ?? 'Other'].iconSrc!, styleDetail.icon!.size, styleDetail.icon!.color ?? baseClassObj.fill)
-    });
-  } else if (['LineString', 'MultiLineString'].includes(featType)) {
-    return generateLineStyle(baseClassObj.strokeColor ?? baseClassObj.fill, 1.5, baseClassObj.strokeType);
-  } else {
-    newStyleObj = new Style({
-      fill: ['basic','ramp-basic','ramp-special'].includes(styleDetail.type)
-        ? new Fill({color: baseClassObj.fill[0] === '#' ? baseClassObj.fill + convertToHexOpacity(0.5) : baseClassObj.fill.replace(')',`,0.5)`)})
-        : undefined,
-      stroke: new Stroke({color: baseClassObj.strokeColor ?? baseClassObj.fill, width: 1, lineCap: 'round', lineJoin: 'round', lineDash: baseClassObj.strokeType === 'dashed' ? [5,2.5] : undefined})
-    });
-  }
-  if (styleDetail.labels && newStyleObj) {
-    const featLabel = lyr.type === 'VectorTileLayer' ? feature.getId() : (feature.get(styleDetail.labels.property) || '');
-    const checkRes = (current: number, min = 0, max = Infinity): boolean => current <= min || current >= max;
-    newStyleObj.setText(
-      makeTextStyle(
-        checkRes(resolution, styleDetail.labels.minResolution, styleDetail.labels.maxResolution) ? '' : featLabel,
-        featType,
-        styleDetail.labels.size,
-        (styleDetail.labels.fill || baseClassObj.fill),
-        styleDetail.labels.offset,
-        styleDetail.labels.strokeColor
-        )
-    );
-  };
-  return newStyleObj;
-};
-
-export function makeTextStyle(
-textContent: string,
-featType: string,
-size: 'x-small' | 'small' | 'normal' | 'large' | 'x-large',
-fillColor = '#d3d3d3',
-labelOffset = [0,0],
-strokeColor?: string
-): Text {
-  const sizing = {
-    'x-small': { font: '0.5rem', weight: 600, fontFam: 'Segoe UI Semibold', strokeWidth: 2},
-    'small': { font: '0.66rem', weight: 600, fontFam: 'Segoe UI Semibold', strokeWidth: 3},
-    'normal': { font: '0.75rem', weight: 500, fontFam: 'Segoe UI', strokeWidth: 4},
-    'large': { font: '0.85rem', weight: 600, fontFam: 'Segoe UI Semibold', strokeWidth: 5},
-    'x-large': { font: '1rem', weight: 600, fontFam: 'Segoe UI Semibold', strokeWidth: 6}
-  };
-  //'#1a73e8'
-  return new Text({
-    text: textContent && textContent !== '' ? stringDivider(textContent, 25, '\n') : '',
-    font: `${sizing[size].weight} ${sizing[size].font} '${sizing[size].fontFam}', Verdana, sans-serif`,
-    textAlign: featType === 'Point' ? 'left' : 'center',
-    offsetX: labelOffset[0],
-    offsetY: labelOffset[1],
-    overflow: true,
-    placement: ['LineString', 'MultiLineString'].includes(featType) ? 'line' : 'point',
-    padding: [5, 5, 5, 5],
-    fill: new Fill({ color: fillColor }),
-    stroke: new Stroke({ color: strokeColor ?? getContrastYIQ(fillColor), width: sizing[size].strokeWidth }),
-});
-};
-
-export function generateIconStyle(
-  iconSrc: BSIconOptions | string,
-  iconSize: 'x-small'|'small' | 'normal' | 'large' | 'x-large' = 'normal',
-  iconColor = '#03899c'
-  ): Icon {
-  const scaleLevelOptions = {
-    'x-small': 0.5,
-    'small': 0.7,
-    'normal': 1,
-    'large': 1.2,
-    'x-large': 1.5
-  };
-  const srcType = (iconSrc.startsWith('http') || iconSrc.startsWith('assets')) ? 'string' : 'iconOptions';
-  const shadowStyle = 'drop-shadow(0px 2px 8px -3px black)';
-  const newIcon = srcType === 'iconOptions' ? generatePointSVG(iconSrc as BSIconOptions, true, {
-    style: `-webkit-filter: ${shadowStyle};filter: ${shadowStyle};stroke:${getContrastYIQ(iconColor)}`
-  }).outerHTML : undefined;
-  const isNotSvg = iconSrc.match(/(.png|.jpg|.jpeg)$/i) !== null;
-  return new Icon({
-      src: srcType === 'string' ? iconSrc as string : 'data:image/svg+xml;utf8,' + newIcon,
-      imgSize: isNotSvg ? undefined : [20,21],
-      scale: scaleLevelOptions[iconSize],
-      displacement: isNotSvg ? undefined : [0,10],
-      crossOrigin: 'anonymous',
-      color: isNotSvg ? undefined : iconColor
-  });
-};
-
-export function generateLineStyle(
-  lineColor: string,
-  lineWidth: number,
-  lineType?: 'solid' | 'dashed'
-  ): Array<Style> {
-  const bgrndColor = getContrastYIQ(lineColor);
-  return [
-    new Style({
-      stroke: new Stroke({
-        color: bgrndColor,
-        width: lineWidth * 3,
-        lineCap: 'round',
-        lineJoin: 'round'
-      }),
-      zIndex: 0
-    }),
-    new Style({
-      stroke: new Stroke({
-        color: lineColor,
-        width: lineWidth,
-        lineDash: lineType === 'dashed' ? [5,2] : undefined,
-        lineCap: 'round',
-        lineJoin: 'round'
-      }),
-      zIndex:1
-    })
-  ];
-};
-
-export const stringDivider = (str: string, width: number, spaceReplacer: any): string => {
-  if (str.length > width) {
-      let p = width;
-      while (p > 0 && (str[p] !== ' ' && str[p] !== '-')) { p--; }
-      if (p > 0) {
-          const left = (str.slice(p, p + 1) === '-') ? str.slice(0, p + 1) : str.slice(0, p);
-          const right = str.slice(p + 1);
-
-          return `${left}${spaceReplacer}${stringDivider(right, width, spaceReplacer)}`;
-      }
-  }
-
-  return str.replace(/(Redevelopment Plan|District Plan|Census Tract)/gi, '')
-      .replace(
-        /\w+/g,
-        txt => txt.charAt(0).toUpperCase() + txt.slice(1)
-      );
-};
+import { generatePointSVG } from './fns-utility';
 
 export const handleSelectionLyr = (selectedFeat: Feature<any>, selectedLayer: Layer<any, any>): Layer<any, any> => {
   const selectionStyle = (f: any) => f.getId() === selectedFeat.getId() ? new Style({stroke: new Stroke({color: 'rgba(0,255,255,0.7)', width: 4})}) : undefined;
@@ -198,3 +40,45 @@ export const generateMeasureStyle = (forType: 'base'|'centroid'|'label'|'segment
     image: ['base','centroid','label'].includes(forType) ? imageStyle() : undefined
   });
 }
+export const makeIconStyle = (base: LyrConstants['Point-base'], opts?: LyrConstants['Point']): Style => {
+  const optsFix = {
+    src: opts?.src || base.src || 'geo-alt-fill',
+    size: base.size || 'rg',
+    fill: opts?.fill || base.fill || '#03899c'
+  };
+  const scale = {'xs': 0.5, 'sm': 0.7, 'rg': 1, 'lg': 1.2, 'xl': 1.5};
+  const isUri = (optsFix.src.startsWith('http') || optsFix.src.startsWith('assets'));
+  const isNotSvg = optsFix.src.match(/(.png|.jpg|.jpeg)$/i) !== null;
+  const shadowStyle = 'drop-shadow(0px 2px 8px -3px black)';
+  const newIcon = isUri ? undefined : generatePointSVG(optsFix.src as BSIconOptions, true, {
+    style: `-webkit-filter: ${shadowStyle};filter: ${shadowStyle};stroke:${getContrastYIQ(optsFix.fill)}`
+  });
+  return new Style({
+    image: new Icon({
+      src: isUri ? optsFix.src : 'data:image/svg+xml;utf8,' + newIcon,
+      imgSize: isNotSvg ? undefined : [20,21],
+      scale: scale[optsFix.size],
+      displacement: isNotSvg ? undefined : [0,10],
+      crossOrigin: 'anonymous',
+      color: isNotSvg ? undefined : optsFix.fill
+    })
+  });
+};
+
+
+ /**
+  * Utility to get a contrasting color from the input color. Generates a simplified
+  * brightness score (YIQ) for a given color in hex or rgb notation. If the score is
+  * above 159 then it's considered a bright color.
+  * @param {string} color A hex or rgb string representation of a color
+  * @returns {string} Returns a dark or light color that will contrast well with the input.
+  **/
+  const getContrastYIQ = (color: string): string => {
+    const rgbRaw = color[0] === '#'
+      ? color.slice(1).match(/.{2}/g)!.slice(0,3)
+      : color.replace(/[a-z\s\(\)]/ig,'').split(',', 3);
+    const rgb = rgbRaw.map((i) => parseInt(i, color[0] === '#' ? 16 : undefined));
+    const yiq = ((rgb[0] * 299) + (rgb[1] * 587) + (rgb[2] * 114)) / 1000;
+
+    return yiq >= 160 ? 'rgba(100,100,100,0.9)' : 'rgba(245,245,245,0.9)';
+  };

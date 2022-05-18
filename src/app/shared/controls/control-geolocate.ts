@@ -4,7 +4,7 @@ import Point from 'ol/geom/Point';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
-import { generateIconStyle } from '../utils/generate-style';
+import { makeIconStyle } from '../utils/generate-style';
 import { generatePointSVG } from '../utils/fns-utility';
 import { MapToast } from '../classes/map-toast.class';
 import { formatDMS } from '../utils/fns-google';
@@ -39,7 +39,7 @@ export class Geolocate extends Control {
     this.button_ = document.createElement('button');
     this.button_.title = 'Find My Location';
     this.button_.setAttribute('type', 'button');
-    this.button_.appendChild(generatePointSVG('geo-alt-fill'));
+    this.button_.appendChild(generatePointSVG('geo-alt-fill', false));
     this.button_.onclick = this.handleClick.bind(this);
 
     this.element.className = 'ol-unselectable ol-custom-control';
@@ -62,7 +62,7 @@ export class Geolocate extends Control {
             geometry: new Point(locationPt),
             'location': locationPt
           });
-          this.positionFeature.setStyle(new Style({image: generateIconStyle('geo-alt-fill')}));
+          this.positionFeature.setStyle(makeIconStyle({src: 'geo-alt-fill', label: 'Position Feature'}));
           this.getMap()!.getView().animate({
             center: locationPt,
             zoom: 5,

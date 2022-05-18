@@ -43,12 +43,12 @@ export class MapToast {
     this.element.innerHTML = `
       <div class="toast-container">
         <div class="toast-header">
-          <span class="toast-icon webmap-btn no-interaction">${generatePointSVG(this.toneIcon[opts.tone]).outerHTML}</span>
+          <span class="toast-icon webmap-btn no-interaction">${generatePointSVG(this.toneIcon[opts.tone], false).outerHTML}</span>
           <span class="toast-title">
             ${opts.header}
             ${opts.value ? valueInput?.outerHTML + '<label for="toastValueInput">' + opts.value + '</label>' : ''}
           </span>
-          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-element').classList.add('hidden');">${generatePointSVG('x').outerHTML}</button>
+          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-element').classList.add('hidden');">${generatePointSVG('x', false).outerHTML}</button>
         </div>
         ${opts.body ? '<div class="toast-body">'+opts.body+'</div>' : ''}
         <div id="toast-timer" style="display:none"><div></div></div>

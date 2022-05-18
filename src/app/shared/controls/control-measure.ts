@@ -17,6 +17,7 @@ export class Measure extends Control {
   button_: HTMLElement;
   toast_: MapToast;
   tippyDropdown: any;
+  dropdownDiv: HTMLElement;
   drawInteraction: Draw | undefined;
   drawType: 'Distance' | 'Area' | 'Radius' = 'Distance';
   geomType = { Area: GeometryType.POLYGON, Distance: GeometryType.LINE_STRING, Radius: GeometryType.CIRCLE };
@@ -43,16 +44,16 @@ export class Measure extends Control {
     this.button_ = document.createElement('button');
     this.button_.title = 'Measure Distance, Radius, or Area';
     this.button_.setAttribute('type', 'button');
-    this.button_.appendChild(generatePointSVG('rulers'));
+    this.button_.appendChild(generatePointSVG('rulers', false));
     this.button_.onclick = (e) => e.preventDefault();
 
     this.element.className = 'ol-unselectable ol-custom-control';
     this.element.appendChild(this.button_);
 
     this.toast_ = new MapToast();
-
+    this.dropdownDiv = this.makeDropdown();
     this.tippyDropdown = tippy(this.button_, {
-      content: this.makeDropdown(),
+      content: this.dropdownDiv,
       appendTo: this.element,
       interactive: true,
       allowHTML: true,
@@ -73,7 +74,9 @@ export class Measure extends Control {
           type: 'button',
           title: `Measure ${m}`,
           innerHTML: m,
-          onclick: (e: any) => this.launchMeasure(m as 'Distance' | 'Area' | 'Radius')
+          value: m,
+          'data-active': 'false',
+          onclick: this.launchMeasure.bind(this)
         }))
     });
   }
@@ -98,7 +101,9 @@ export class Measure extends Control {
     }
   }
 
-  launchMeasure(drawType: 'Distance' | 'Area' | 'Radius'): void {
+  launchMeasure(e: MouseEvent): void {
+    const drawType = (e.target as HTMLButtonElement).value as 'Distance' | 'Area' | 'Radius';
+    this.dropdownDiv.querySelectorAll('button').forEach(c => c.setAttribute('data-active',String(c.value === drawType)));
     console.info(`Launching Measure Tool - ${drawType}...`);
     this.tippyDropdown.hide();
 
@@ -138,6 +143,7 @@ export class Measure extends Control {
   }
   endMeasure(): void {
     if (this.tippyDropdown) this.tippyDropdown.hide();
+    this.dropdownDiv.querySelectorAll('button').forEach(c => c.setAttribute('data-active','false'));
     document.removeEventListener('keyup', this.handleEscapeKey);
     this.toast_.destroy();
 

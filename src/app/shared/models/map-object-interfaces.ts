@@ -1,34 +1,57 @@
 interface IObject {
   [key: string]: string | number | undefined;
 }
-export interface ClassObjectBase {
-  fill: string;
-  label: string;
-  iconSrc?: string;
-  strokeColor?: string;
-  strokeType?:'solid' | 'dashed';
+export interface LyrConstants {
+  'feat-type': 'Point' | 'Line' | 'Polygon';
+  'layer-type': 'TileLayer' | 'VectorTileLayer' | 'VectorLayer';
+  'style-type': 'basic' | 'boundary' | 'ramp-basic' | 'ramp-special';
+  'Polygon': { label: string; fill: string; stroke?: string; strokeType?: 'solid' | 'dashed' | 'none'; };
+  'Line': { label: string; stroke: string; strokeType: 'solid' | 'dashed' | 'none'; };
+  'Point': { label: string; fill?: string; src?: string; };
+  'Point-base': {
+    label: string;
+    fill?: string;
+    offset?: [number, number];
+    size?: 'xs'|'sm'|'rg'|'lg'|'xl';
+    src?: string;
+  };
+  'labels': {
+    prop: string;
+    fill?: string;
+    offset?: [number, number];
+    resolution?: {min: number; max?: number;} | {min?: number; max: number;};
+    size?: 'xs'|'sm'|'rg'|'lg'|'xl';
+    stroke?: string;
+  }
 }
-export interface StyleDetailObj {
-  type: 'basic' | 'boundary' | 'ramp-basic' | 'ramp-special' | 'no style';
-  featType: 'line' | 'polygon' | 'point';
-  keyProp?: string;
-  idProp?: string;
-  classObject?: {[key: string]: ClassObjectBase};
-  labels?: {size: 'x-small' |'small' | 'normal' | 'large' | 'x-large'; property: string; fill?: string; strokeColor?: string; offset?: [number, number]; minResolution?: number; maxResolution?: number};
-  icon?: {size: 'x-small' | 'small' | 'normal' | 'large' | 'x-large'; src?: string; description?: string; color?: string; offset?: [number, number]; };
-  limits?: {minResolution?: number; maxResolution?: number; minZoom?: number; maxZoom?: number;};
+export interface LyrInitState {
+  className: string,
+  group: string,
+  zIndex: number;
+  visible?: boolean;
+  minResolution?: number;
+  maxResolution?: number;
+  minZoom?: number;
+  maxZoom?: number;
 };
-export interface LayerDetailObj {
-  lyrGroup: string;
-  lyrName: string;
-  lyrType: 'TileLayer' | 'VectorTileLayer' | 'VectorLayer';
-  lyrZIndex: number;
-  initVisible: boolean;
-  srcUrl: string;
-  srcAttribution: Array<string>;
-  srcDescription: string;
-  styleDetail: StyleDetailObj;
-}
+export type LyrInitSrc<LT extends LyrConstants['layer-type']> =
+LT extends 'VectorTileLayer' ? {
+  idProp: string;
+  url: string;
+  attr?: Array<string>;
+  desc?: string;
+} : {
+  url: string;
+  attr?: Array<string>;
+  desc?: string;
+};
+export type LyrStyleOpts<ST extends LyrConstants['style-type'], FT extends LyrConstants['feat-type']> = {
+  keyProp: string;
+  base: FT extends 'Point' ? LyrConstants['Point-base'] : LyrConstants[FT];
+  labels?: LyrConstants['labels'];
+} & (
+  ST extends 'ramp-basic'|'ramp-special' ? {classes: { [key: string]: LyrConstants[FT]; };} : {}
+);
 export interface ArcPJSONResponse<T extends 'AddressPts'|'PropInfo'> {
   objectIdFieldName: 'FID' | string;
   uniqueIdField: { name: 'FID' | string; isSystemMaintained: boolean; };
@@ -188,7 +211,11 @@ export interface SettingsOptions extends InitSettings {
 export interface MapTableOpts {
   'basic': {header: string; subheader: string;};
   'attribute': {attributes: { [key: string]: any }};
-  'legend': {featType: 'polygon'|'point'|'line'; classes: StyleDetailObj['classObject']};
+  'legend': {
+    styleType: LyrConstants['style-type'];
+    featType: LyrConstants['feat-type'];
+    classes: { [key: string]: LyrConstants['Point'|'Line'|'Polygon'|'Point-base']; };
+  };
 }
 export interface ToastOpts {
   tone: 'warning' | 'info' | 'action';

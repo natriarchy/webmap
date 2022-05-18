@@ -1,7 +1,7 @@
 import Control from 'ol/control/Control';
 import { MapModal } from '../classes/map-modal.class';
 import { InitSettings, SettingsOptions } from '../models';
-import { createElementWith, createFormField } from '../utils/fns-utility';
+import { createFormField } from '../utils/fns-utility';
 
 export class Settings extends Control {
   name = 'settings';

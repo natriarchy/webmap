@@ -15,7 +15,7 @@ export class MapModal {
     const modalElHTML = `
       <div class="modal-header">
         <h3><span>${options.header}</span>${options.subheader ? '<span>'+options.subheader+'</span>' : ''}</h3>
-        <button type="button" class="modal-close webmap-btn" onclick="document.getElementById('modal-element').remove()">${generatePointSVG('x').outerHTML}</button>
+        <button type="button" class="modal-close webmap-btn" onclick="document.getElementById('modal-element').remove()">${generatePointSVG('x', false).outerHTML}</button>
       </div>
       <div class="modal-body">
         ${options.description ? '<p>'+options.description+'</p>' : ''}
