@@ -172,13 +172,13 @@ export const generateTable = <T extends keyof MapTableOpts>(type: T, content: Ma
 /**
  * @function compare - Function used in .sort() to sort strings in ascending or descending order.
  **/
-export const compare = (valA: any, valB: any, ascending = true): number => {
+export const compare = (v1: any, v2: any, asc = true): number => {
   // check if property doesn't exist on either object
-  if (!valA || !valB) return 0;
-  const varA = typeof valA === 'string' ? valA.toUpperCase() : valA;
-  const varB = typeof valB === 'string' ? valB.toUpperCase() : valB;
-  let comparison = 0;
-  if (varA !== varB) comparison = varA > varB ? 1 : -1;
+  if (!v1 || !v2) return 0;
+  const a = typeof v1 === 'string' ? v1.toUpperCase() : v1;
+  const b = typeof v2 === 'string' ? v2.toUpperCase() : v2;
 
-  return comparison * Number(ascending || -1);
+  return a === b
+    ? 0
+    : Number(a > b || -1) * Number(asc || -1);
 };

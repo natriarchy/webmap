@@ -6,10 +6,10 @@ import { generalColorRamps } from '../utils/constants';
 import { LyrStylr } from './lyr-style';
 
 export class Lyr<LT extends LyrConstants['layer-type']>{
-  instance: Layer<any, any>;
-  lyrType: LyrConstants['layer-type'];
-  src: LyrInitSrc<LT>;
-  styleOpts?: {styleType: LyrConstants['style-type'], featType: LyrConstants['feat-type'], opts: LyrStyleOpts<any, any>};
+  public instance: Layer<any, any>;
+  public lyrType: LyrConstants['layer-type'];
+  public src: LyrInitSrc<LT>;
+  public styleOpts?: {style: LyrConstants['style-type'], geom: LyrConstants['feat-type'], opts: LyrStyleOpts<any, any>};
   constructor(lyrType: LT, state: LyrInitState, src: LyrInitSrc<LT>) {
       this.lyrType = lyrType;
       this.src = src;
@@ -47,23 +47,23 @@ export class Lyr<LT extends LyrConstants['layer-type']>{
     };
   }
   setStyle(
-    styleType: LyrConstants['style-type'],
-    featType: LyrConstants['feat-type'],
+    style: LyrConstants['style-type'],
+    geom: LyrConstants['feat-type'],
     opts: LyrStyleOpts<any, any>
     ): Lyr<LT> {
     const lyrType = this.lyrType;
-    if (lyrType !== 'TileLayer' && styleType !== 'ramp-basic') {
-      const newStyle = new LyrStylr(styleType, featType, opts);
+    if (lyrType !== 'TileLayer' && style !== 'ramp-basic') {
+      const newStyle = new LyrStylr(style, geom, opts);
       (this.instance as VectorLayer<any> | VectorTileLayer).setStyle(newStyle.makeStyleFn(lyrType));
-    } else if (lyrType === 'VectorLayer' && styleType === 'ramp-basic') {
+    } else if (lyrType === 'VectorLayer' && style === 'ramp-basic') {
       this.instance.getSource().once('featuresloadend', (e: any) => {
         const uniqueCats: Array<string> = Array.from(new Set(e.features!.map((feat: any) => feat.get(opts.keyProp))));
         (opts as LyrStyleOpts<'ramp-basic', any>).classes = uniqueCats.reduce((a, v, i) => ({ ...a, [v]: {fill: generalColorRamps.basic[i], label: v}}), {});
-        (this.instance as VectorLayer<any>).setStyle(new LyrStylr(styleType, featType, opts).makeStyleFn(lyrType));
-        this.instance.set('styleDetails', {styleType: styleType, featType: featType, opts: opts});
+        (this.instance as VectorLayer<any>).setStyle(new LyrStylr(style, geom, opts).makeStyleFn(lyrType));
+        this.instance.set('styleDetails', {style: style, geom: geom, opts: opts});
       });
     };
-    this.styleOpts = {styleType: styleType, featType: featType, opts: opts};
+    this.styleOpts = {style: style, geom: geom, opts: opts};
     this.instance.set('styleDetails', this.styleOpts);
     return this;
   }

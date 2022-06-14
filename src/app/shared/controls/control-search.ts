@@ -1,11 +1,14 @@
 import { Control } from 'ol/control';
-import { createElementWith, generatePointSVG } from '../utils/fns-utility';
 
 export class Search extends Control {
-  name = 'search';
-  icon_: SVGElement;
-  inputEl_: HTMLInputElement;
-  clearBtn_: HTMLButtonElement;
+  readonly name = 'search';
+  readonly icons = {
+    ctrl: 'search',
+    clear: 'x'
+  };
+  _icon: HTMLElement;
+  _inputEl: HTMLInputElement;
+  _clearBtn: HTMLButtonElement;
   currentFocus = -1;
   searchData: Array<any> = [
     "Channel",
@@ -43,70 +46,71 @@ export class Search extends Control {
     super({ element: document.createElement('div') });
     this.set('name', this.name);
 
-    this.icon_ = generatePointSVG('search', false, {class:'search-icon'}) as SVGElement;
+    this._icon = document.createElement('span');
+    this._icon.className = 'bi bi-'+this.icons.ctrl;
 
-    this.inputEl_ = document.createElement('input');
-    this.inputEl_.setAttribute('type','text');
-    this.inputEl_.id = 'search-input';
-    this.inputEl_.name = 'search-input';
-    this.inputEl_.placeholder = 'Search Any Address';
-    this.inputEl_.oninput = this.handleInput.bind(this);
-    this.inputEl_.onkeydown = this.handleKeyDown.bind(this);
+    this._inputEl = document.createElement('input');
+    this._inputEl.setAttribute('type','text');
+    this._inputEl.id = 'search-input';
+    this._inputEl.name = 'search-input';
+    this._inputEl.placeholder = 'Search Any Address';
+    this._inputEl.oninput = this.handleInput.bind(this);
+    this._inputEl.onkeydown = this.handleKeyDown.bind(this);
 
-    this.clearBtn_ = document.createElement('button');
-    this.clearBtn_.setAttribute('type', 'button');
-    this.clearBtn_.title = 'Clear Input';
-    this.clearBtn_.id = 'search-clear';
-    this.clearBtn_.className = 'webmap-btn ctrl';
-    this.clearBtn_.onclick = this.clearInput.bind(this);
-    this.clearBtn_.appendChild(generatePointSVG('x',false));
+    this._clearBtn = document.createElement('button');
+    this._clearBtn.setAttribute('type', 'button');
+    this._clearBtn.title = 'Clear Input';
+    this._clearBtn.id = 'search-clear';
+    this._clearBtn.className = 'webmap-btn ctrl';
+    this._clearBtn.onclick = this.clearInput.bind(this);
+    this._clearBtn.innerHTML = `<span class="bi bi-${this.icons['clear']}"></span>`;
 
     this.element.className = 'search-element';
-    this.element.append(this.icon_, this.inputEl_, this.clearBtn_);
+    this.element.append(this._icon, this._inputEl, this._clearBtn);
   }
   handleInput(e: any): void | boolean {
     const val = e.target.value;
     this.closeAllLists();
     if (!val || val === '') {
-      this.clearBtn_.style.display = 'none';
+      this._clearBtn.style.display = 'none';
       return false;
     }
-    this.clearBtn_.style.display = 'flex';
+    this._clearBtn.style.display = 'flex';
     this.currentFocus = -1;
-    const results = createElementWith(false, 'div', {id: e.target.id + "-results", class: 'autocomplete-items'});
+    const results = document.createElement('div');
+    results.id = e.target.id + "-results";
+    results.className = 'autocomplete-items';
     e.target.parentNode.appendChild(results);
     for (let i = 0; i < this.searchData.length; i++) {
       if (this.searchData[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-        const newDiv = createElementWith(false, 'div', {
-          innerHTML: '<strong>' + this.searchData[i].substr(0, val.length) + '</strong>',
-          onclick:  (evt: MouseEvent) => {
-            this.inputEl_.value = newDiv.getElementsByTagName('input')[0].value;
+        const newDiv = document.createElement('div')
+        newDiv.innerHTML = '<strong>' + this.searchData[i].substr(0, val.length) + '</strong>';
+        newDiv.onclick =  (evt: MouseEvent) => {
+            this._inputEl.value = newDiv.getElementsByTagName('input')[0].value;
             this.closeAllLists();
-          }
-        });
+        };
         newDiv.innerHTML += this.searchData[i].substr(val.length);
         newDiv.innerHTML += "<input type='hidden' value='" + this.searchData[i] + "'>";
         results.appendChild(newDiv);
       }
     }
     if (results.childElementCount < 1) {
-      const emptyResults = createElementWith(false, 'div', {
-        innerText: 'No Results',
-        className: 'empty-results',
-        onclick: this.clearInput.bind(this)
-      });
+      const emptyResults = document.createElement('div');
+      emptyResults.innerText = 'No Results';
+      emptyResults.className = 'empty-results';
+      emptyResults.onclick = this.clearInput.bind(this);
       results.appendChild(emptyResults);
     }
   }
-  handleKeyDown(evt: any): void {
-    let resultsEls: any = document.getElementById(evt.target.id + "-results");
+  handleKeyDown(e: any): void {
+    let resultsEls: any = document.getElementById(e.target.id + "-results");
     if (resultsEls) resultsEls = (resultsEls as HTMLElement).getElementsByTagName("div");
-    if ([38,40].includes(evt.keyCode)) {
-      const changeFocus = evt.keyCode === 40 ? 1 : -1;
+    if ([38,40].includes(e.keyCode)) {
+      const changeFocus = e.keyCode === 40 ? 1 : -1;
       this.currentFocus = this.currentFocus + changeFocus;
       this.addActive(resultsEls);
-    } else if (evt.keyCode == 13) {
-      evt.preventDefault();
+    } else if (e.keyCode == 13) {
+      e.preventDefault();
       if (this.currentFocus > -1 && resultsEls) resultsEls[this.currentFocus].click();
     }
   }
@@ -128,15 +132,15 @@ export class Search extends Control {
     }
   }
   clearInput(): void {
-    this.inputEl_.value = '';
-    this.clearBtn_.style.display = 'none';
+    this._inputEl.value = '';
+    this._clearBtn.style.display = 'none';
     this.closeAllLists();
   }
   /* close all autocomplete lists, except one passed as arg */
   closeAllLists(currentEl?: HTMLElement): void {
     const items = document.getElementsByClassName("autocomplete-items");
     for (let i = 0; i < items.length; i++) {
-      if (currentEl != items[i] && currentEl != this.inputEl_) {
+      if (currentEl != items[i] && currentEl != this._inputEl) {
         items[i].parentNode?.removeChild(items[i]);
       }
     }

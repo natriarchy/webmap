@@ -1,5 +1,3 @@
-import { createElementWith, generatePointSVG } from "../utils/fns-utility";
-
 export class MapModal {
   type: 'feature' | 'info' = 'feature';
   modalElement: HTMLElement;
@@ -12,27 +10,32 @@ export class MapModal {
     attrTable?: object
   }) {
     if (document.getElementById('modal-element')) document.getElementById('modal-element')!.remove();
-    const modalElHTML = `
+
+    const actionBtn = document.createElement('button');
+    actionBtn.setAttribute('type', 'button');
+    actionBtn.className = 'webmap-btn';
+    actionBtn.innerHTML = 'Zoom to Feature',
+    actionBtn.onclick = (e: MouseEvent) => this.emit('zoomBtnClick');
+
+    const modalContainer = document.createElement('section');
+    modalContainer.className = 'modal-container';
+    modalContainer.innerHTML = `
       <div class="modal-header">
         <h3><span>${options.header}</span>${options.subheader ? '<span>'+options.subheader+'</span>' : ''}</h3>
-        <button type="button" class="modal-close webmap-btn" onclick="document.getElementById('modal-element').remove()">${generatePointSVG('x', false).outerHTML}</button>
+        <button type="button" class="modal-close webmap-btn" onclick="document.getElementById('modal-element').remove()"><span class="bi bi-x"></span></button>
       </div>
       <div class="modal-body">
         ${options.description ? '<p>'+options.description+'</p>' : ''}
         ${options.attrTable ? this.makeTable(options.attrTable) : undefined}
       </div>
     `;
-    const actionBtn = createElementWith(false, 'button', {type: 'button', class: 'webmap-btn', innerHTML: 'Zoom to Feature', onclick: (e: MouseEvent) => this.emit('zoomBtnClick')});
-    const modalContainer = createElementWith(false, 'section', {
-      class: 'modal-container',
-      innerHTML: modalElHTML,
-      children: [actionBtn]
-    });
-    this.modalElement = createElementWith(false, 'section', {
-      id: 'modal-element',
-      class: options.type,
-      children: [modalContainer]
-    });
+    modalContainer.appendChild(actionBtn);
+
+    this.modalElement = document.createElement('section');
+    this.modalElement.id = 'modal-element';
+    this.modalElement.className = options.type;
+    this.modalElement.appendChild(modalContainer);
+
     document.querySelector('div.ol-overlaycontainer-stopevent')!.append(this.modalElement);
   }
 
@@ -40,10 +43,11 @@ export class MapModal {
     const tableRows = Object.entries(attributes)
       .filter(a => !['geometry', '_symbol', 'layer'].includes(a[0]))
       .map(e => `<tr><td class='prop'>${e[0]}</td><td class='val'>${e[1]}</td></tr>`);
-    return createElementWith(false, 'table', {
-      class: 'map-table attribute',
-      innerHTML: '<tr><th>Property</th><th>Value</th></tr>' + tableRows.join('')
-    }).outerHTML;
+    const _table = document.createElement('table');
+    _table.className = 'map-table attribute';
+    _table.innerHTML = '<tr><th>Property</th><th>Value</th></tr>' + tableRows.join('');
+
+    return _table.outerHTML;
   }
 
   public detroyModal(): void {

@@ -1,9 +1,7 @@
+import { MapBrowserEvent, Object as OLObj, Overlay } from 'ol';
 import { pointerMove, touchOnly } from 'ol/events/condition';
-import Pointer from 'ol/interaction/Pointer';
+import { Pointer, Select } from 'ol/interaction';
 import { SelectEvent } from 'ol/interaction/Select';
-import MapBrowserEvent from 'ol/MapBrowserEvent';
-import Overlay from 'ol/Overlay';
-import Select from 'ol/interaction/Select';
 
 export class FeatureTooltip extends Overlay {
   name = 'feature-tooltip';
@@ -25,7 +23,7 @@ export class FeatureTooltip extends Overlay {
     this.selectInt = new Select({
       condition: (e) => {
         const checkCanvas = (e.originalEvent.target.tagName === 'CANVAS' || e.originalEvent.target.className === 'ol-overlay-container ol-selectable');
-        const checkSetting = (e.map.get('AllowSelectHover') !== false);
+        const checkSetting = (e.map.get('settings') as OLObj).get('AllowSelectHover') !== false;
         const checkMWheel = !(e.originalEvent.button === 1 || e.originalEvent.which === 2 || e.originalEvent.buttons === 4);
 
         return pointerMove(e) && checkCanvas && checkSetting && checkMWheel && !touchOnly(e);
@@ -53,7 +51,7 @@ export class FeatureTooltip extends Overlay {
   private handlePointerMove(e: MapBrowserEvent<any>): void {
     if (touchOnly(e)) return;
     const checkCanvas = (e.originalEvent.target.tagName === 'CANVAS' || e.originalEvent.target.className === 'ol-overlay-container ol-selectable');
-    const checkSetting = (e.map.get('AllowSelectHover') !== false);
+    const checkSetting = ((e.map.get('settings') as OLObj).get('AllowSelectHover') !== false);
     const isOK = checkSetting && checkCanvas && !e.dragging;
     const hasFeat = isOK && e.map.hasFeatureAtPixel(e.pixel,{layerFilter: l => !['click-selection','geolocation'].includes(l.getClassName())});
     e.map.getTargetElement().style.cursor = hasFeat ? 'pointer' : 'initial';

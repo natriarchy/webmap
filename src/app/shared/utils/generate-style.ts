@@ -1,7 +1,6 @@
 import { Feature } from 'ol';
 import { Layer, Vector as VectorLayer, VectorTile as VectorTileLayer } from 'ol/layer';
-import { Fill, Icon, RegularShape, Stroke, Style, Text } from 'ol/style';
-import CircleStyle from 'ol/style/Circle';
+import { Circle as CircleStyle, Fill, Icon, RegularShape, Stroke, Style, Text } from 'ol/style';
 import { LyrConstants } from '../models';
 import { BSIconOptions } from './constants';
 import { generatePointSVG } from './fns-utility';

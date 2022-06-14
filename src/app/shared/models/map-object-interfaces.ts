@@ -5,8 +5,8 @@ export interface LyrConstants {
   'feat-type': 'Point' | 'Line' | 'Polygon';
   'layer-type': 'TileLayer' | 'VectorTileLayer' | 'VectorLayer';
   'style-type': 'basic' | 'boundary' | 'ramp-basic' | 'ramp-special';
-  'Polygon': { label: string; fill: string; stroke?: string; strokeType?: 'solid' | 'dashed' | 'none'; };
-  'Line': { label: string; stroke: string; strokeType: 'solid' | 'dashed' | 'none'; };
+  'Polygon': { label: string; fill: string; stroke?: string; strokeType?: 'solid' | 'dashed'; };
+  'Line': { label: string; stroke: string; strokeType: 'solid' | 'dashed'; };
   'Point': { label: string; fill?: string; src?: string; };
   'Point-base': {
     label: string;

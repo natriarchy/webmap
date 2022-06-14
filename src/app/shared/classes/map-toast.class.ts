@@ -1,14 +1,12 @@
-import { BSIconOptions } from "../utils/constants";
-import { createElementWith, generatePointSVG } from "../utils/fns-utility";
-
 export class MapToast {
-  private element: HTMLElement;
-  private listeners: {[key: string]: any} = {};
-  private toneIcon: {[key: string]: BSIconOptions} = {
+  readonly icons = {
     action: 'check-square-fill',
     info: 'info-circle-fill',
-    warning: 'exclamation-triangle-fill'
+    warning: 'exclamation-triangle-fill',
+    close: 'x'
   };
+  private element: HTMLElement;
+  private listeners: {[key: string]: any} = {};
   constructor() {
     if (!document.getElementById('toast-element')) {
       this.element = document.createElement('section');
@@ -32,23 +30,29 @@ export class MapToast {
     }
     this.element.className = opts.tone;
 
-    const valueInput = opts.value
-      ? createElementWith(false, 'input', {
-        type: 'text',
-        id: 'toastValueInput',
-        class: 'hide-input',
-        value: opts.value
-      })
-      : undefined;
+    const makeInput = (val: string) => {
+      const _input = document.createElement('input');
+      _input.setAttribute('type', 'text');
+      _input.id = 'toastValueInput';
+      _input.className = 'hide-input';
+      _input.setAttribute('value', val);
+      return _input;
+    };
+    const valueInput = opts.value ? makeInput(opts.value) : undefined;
+
     this.element.innerHTML = `
       <div class="toast-container">
         <div class="toast-header">
-          <span class="toast-icon webmap-btn no-interaction">${generatePointSVG(this.toneIcon[opts.tone], false).outerHTML}</span>
+          <span class="toast-icon webmap-btn no-interaction">
+            <span class="bi bi-${this.icons[opts.tone]}"></span>
+          </span>
           <span class="toast-title">
             ${opts.header}
             ${opts.value ? valueInput?.outerHTML + '<label for="toastValueInput">' + opts.value + '</label>' : ''}
           </span>
-          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-element').classList.add('hidden');">${generatePointSVG('x', false).outerHTML}</button>
+          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-element').classList.add('hidden');">
+            <span class="bi bi-${this.icons['close']}"></span>
+          </button>
         </div>
         ${opts.body ? '<div class="toast-body">'+opts.body+'</div>' : ''}
         <div id="toast-timer" style="display:none"><div></div></div>

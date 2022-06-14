@@ -1,26 +1,26 @@
-import {Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
-import {Map, View } from 'ol';
-import {Attribution, ScaleLine } from 'ol/control';
-import {defaults, DragPan } from 'ol/interaction';
-import {fromLonLat } from 'ol/proj';
+import { Map, Object, View } from 'ol';
+import { Attribution, ScaleLine } from 'ol/control';
+import { defaults, DragPan } from 'ol/interaction';
+import { fromLonLat } from 'ol/proj';
 
 // Custom Controls
-import {BasemapToggle } from '../controls/control-basemap';
-import {FullScreenCustom } from '../controls/control-fullscreen';
-import {Geolocate } from '../controls/control-geolocate';
-import {LayersManager } from '../controls/control-layersmanager';
-import {Measure } from '../controls/control-measure';
-import {ControlPaneEl } from '../controls/control-pane-el';
-import {Search } from '../controls/control-search';
-import {Settings } from '../controls/control-settings';
-import {ControlToolbarEl } from '../controls/control-toolbar-el';
-import {ZoomExtentGroup } from '../controls/control-zoom-extent';
+import { BasemapToggle } from '../controls/control-basemap';
+import { FullScreenCustom } from '../controls/control-fullscreen';
+import { Geolocate } from '../controls/control-geolocate';
+import { LayersMgmt } from '../controls/control-layers-mgmt';
+import { Measure } from '../controls/control-measure';
+import { ControlPaneEl } from '../controls/control-pane-el';
+import { Search } from '../controls/control-search';
+import { Settings } from '../controls/control-settings';
+import { ControlToolbarEl } from '../controls/control-toolbar-el';
+import { ZoomExtent } from '../controls/control-zoom-extent';
 
 // Other Custom Classes
-import {FeatureTooltip } from '../interactions/overlay-feature-tooltip';
-import {FeatClickModal } from '../interactions/interaction-feat-click';
-import {Lyr} from '../classes/map-lyr';
+import { FeatureTooltip } from '../interactions/overlay-feature-tooltip';
+import { FeatClickModal } from '../interactions/interaction-feat-click';
+import { Lyr } from '../classes/map-lyr';
 
 @Component({
   selector: 'app-map-view',
@@ -30,11 +30,27 @@ import {Lyr} from '../classes/map-lyr';
 
 export class MapViewComponent implements OnInit {
   instance: Map;
-  nwkArcGIS = {
-    base: 'https://services1.arcgis.com/WAUuvHqqP3le2PMh/arcgis/rest/services',
-    params: 'query?returnGeometry=true&f=geojson&'
+  defaultView = {
+    center: fromLonLat([-74.1723667, 40.735657]),
+    extent: [
+        [-74.2853199, 40.7910592],
+        [-74.0617852, 40.6733126]
+      ].reduce((p,c) => p.concat(fromLonLat(c)),[]),
+    resolutions: [
+      76.43702828507324,
+      38.21851414253662,
+      19.10925707126831,
+      9.554628535634155,
+      4.77731426794937,
+      2.388657133974685,
+      1.1943285668550503,
+      0.5971642835598172,
+      0.29858214164761665,
+      0.14929107082380833,
+      0.074645535411904163,
+      0.037322767705952081
+    ]
   };
-  defaultExtent = fromLonLat([-74.2853199, 40.7910592]).concat(fromLonLat([-74.0617852, 40.6733126])) as [number, number, number, number];
 
   constructor() {
     this.instance = new Map({
@@ -51,20 +67,15 @@ export class MapViewComponent implements OnInit {
       controls: [new Attribution(), new ScaleLine({units: 'us'})],
       overlays: [new FeatureTooltip({})],
       view: new View({
-        center: fromLonLat([-74.1723667, 40.735657]),
+        center: this.defaultView.center,
         enableRotation: false,
         constrainResolution: true,
-        resolution: 19.10925707126831,
-        resolutions: [
-          76.43702828507324, 38.21851414253662, 19.10925707126831,
-          9.554628535634155, 4.77731426794937, 2.388657133974685,
-          1.1943285668550503, 0.5971642835598172, 0.29858214164761665,
-          0.14929107082380833, 0.074645535411904163, 0.037322767705952081
-        ]
+        resolution: this.defaultView.resolutions[2],
+        resolutions: this.defaultView.resolutions
       })
     });
     // Initialize interaction settings for map object
-    ['AllowSelectHover','AllowFeatureClickModal'].forEach(s => this.instance.set(s, true));
+    this.instance.set('settings', new Object({'AllowSelectHover': true, 'AllowFeatureClickModal': true}));
   }
   ngOnInit(): void {
     this.instance.setTarget('map-instance');
@@ -72,9 +83,9 @@ export class MapViewComponent implements OnInit {
       l => this.instance.addLayer(l.instance)
     );
     this.instance.getControls().extend(new ControlToolbarEl({position: 'top-left'}).with([
-        new ZoomExtentGroup({defaultExtent: this.defaultExtent}),
-        new Geolocate({}),
-        new Measure({}),
+        new ZoomExtent({defaultExtent: this.defaultView.extent as [number,number,number,number]}),
+        new Geolocate(),
+        new Measure(),
         new BasemapToggle({sources: [
           {
             name: 'Streets',
@@ -83,25 +94,26 @@ export class MapViewComponent implements OnInit {
           },
           {
             name: 'Satellite',
-            // lyrs param {y queries for sattelite hybrid, s queries for just sattelite, r queries for standard Maps}
+            // Re lyrs param { y queries for sattelite hybrid, s queries for just sattelite, r queries for standard Maps }
             url: 'https://mt{1-3}.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
             attribution: '<span>Imagery ©2020 Bluesky, Maxar Technologies, Sanborn, USDA Farm Service Agency, <a href="https://www.google.com/permissions/geoguidelines/attr-guide/">Google Streets & Satellite 2020</a></span>'
           }
         ]}),
-        new FullScreenCustom({})
+        new FullScreenCustom()
     ]));
     this.instance.getControls().extend(new ControlToolbarEl({position: 'top'}).with([
         new Search({})
     ]));
     this.instance.getControls().extend(
-      new ControlPaneEl({position:'left', toggleTargetId: 'controltb-top'}).with([
-        new LayersManager({}),
-        new Settings({})
+      new ControlPaneEl({position:'left', toggleId: 'controltb-top'}).with([
+        new LayersMgmt({type: 'pane', targetId: 'controlpn-left'}),
+        new Settings()
       ])
     );
 
     setTimeout(() => {this.instance.updateSize();},1000);
   }
+
   arcRESTUrl(resName: string, outFields: Array<string>, opts?: {resNum?: number; query?: string; baseUrl?: string;}): string {
     const baseUrl = opts?.baseUrl ? opts.baseUrl.replace(/\/+$/, '') : 'https://services1.arcgis.com/WAUuvHqqP3le2PMh';
     const finalQ = `where=OBJECTID IS NOT NULL${opts?.query ? ' AND '+opts.query : ''}`;
@@ -109,6 +121,7 @@ export class MapViewComponent implements OnInit {
 
     return encodeURI(`${baseUrl}/arcgis/rest/services/${resName}/FeatureServer/${opts?.resNum || 0}/query?${params}`);
   }
+
   addLayers(): Array<Lyr<any>> {
     return [
       new Lyr('TileLayer', {className: 'basemap', group: 'Basemap', zIndex: 0, visible: true}, {
@@ -292,7 +305,7 @@ export class MapViewComponent implements OnInit {
         desc: 'City of Newark Ward Boundaries as delineated in 2012, the last census redistricting. Boundaries drawn to reflect similar similar population totals amongst the five wards.'
       }).setStyle('boundary','Polygon', {
         keyProp: 'WARD_NAME',
-        base: {label: 'Ward', fill: 'transparent', stroke: 'rgb(0,0,0)', strokeType: 'solid'},
+        base: {label: 'Ward', fill: 'transparent', stroke: 'rgb(0,0,0)', strokeType: 'dashed'},
         labels: {prop: 'WARD_NAME', fill: 'rgb(255,255,255)', stroke: 'rgb(0,0,0)'}
       })
     ];

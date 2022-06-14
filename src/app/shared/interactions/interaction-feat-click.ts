@@ -1,12 +1,10 @@
+import OLObj from 'ol/Object';
 import { singleClick } from 'ol/events/condition';
 import Feature from 'ol/Feature';
 import Select from 'ol/interaction/Select';
-import Layer from 'ol/layer/Layer';
-import VectorLayer from 'ol/layer/Vector';
-import VectorTileLayer from 'ol/layer/VectorTile';
-import Stroke from 'ol/style/Stroke';
-import Style from 'ol/style/Style';
 import { SelectEvent } from 'ol/interaction/Select';
+import { Layer, Vector as VectorLayer, VectorTile as VectorTileLayer } from 'ol/layer';
+import { Stroke, Style } from 'ol/style';
 
 export class FeatClickModal extends Select {
   activeModalEl: HTMLElement | undefined;
@@ -14,7 +12,7 @@ export class FeatClickModal extends Select {
     super({
       condition: (e) => {
         const checkCanvas = (e.originalEvent.target.tagName === 'CANVAS' || e.originalEvent.target.className === 'ol-overlay-container ol-selectable');
-        const checkSetting = (e.map.get('AllowFeatureClickModal') !== false);
+        const checkSetting = ((e.map.get('settings') as OLObj).get('AllowFeatureClickModal') !== false);
 
         return singleClick(e) && checkCanvas && checkSetting;
       },
@@ -30,7 +28,7 @@ export class FeatClickModal extends Select {
   handleSelection(e: SelectEvent): void {
     const map = this.getMap();
     this.detroyModal();
-    let selectionLayer = map.getAllLayers().find(l => l.getClassName() === (this.get('selectLyrClass') || 'click-selection'));
+    let selectionLayer = map.getAllLayers().find(l => l.getClassName() === (this.get('selectLyrClass') || 'click-selection'))!;
     if (selectionLayer) map.removeLayer(selectionLayer);
     if (e.selected.length > 0) {
       const currentLayer = this.getLayer(e.selected[0]);
@@ -78,7 +76,7 @@ export class FeatClickModal extends Select {
   }
 
   featAction(type: 'zoom' | 'outline'): void {
-    if (type === 'zoom' && this.getFeatures().item(0)) this.getMap().getView().fit(this.getFeatures().item(0).getGeometry(),{maxZoom: 10});
+    if (type === 'zoom' && this.getFeatures().item(0)?.getGeometry()) this.getMap().getView().fit(this.getFeatures().item(0).getGeometry(),{maxZoom: 10});
   }
 
   detroyModal(): void {

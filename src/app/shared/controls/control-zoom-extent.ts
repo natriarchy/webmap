@@ -1,17 +1,15 @@
 import { easeOut } from 'ol/easing';
 import { fromExtent } from 'ol/geom/Polygon';
 import Control from 'ol/control/Control';
-import { generatePointSVG } from '../utils/fns-utility';
-import { BSIconOptions } from '../utils/constants';
 
-export class ZoomExtentGroup extends Control {
+export class ZoomExtent extends Control {
   readonly name = 'zoom-extent-grp';
-  buttons_: Array<HTMLElement>;
-  buttonDetails: Array<[string, string]> = [
-    ['Zoom In', 'zoom-in'],
-    ['Reset View', 'house'],
-    ['Zoom Out', 'zoom-out']
-  ];
+  readonly icons = {
+    'Zoom In': 'zoom-in',
+    'Reset View': 'house',
+    'Zoom Out': 'zoom-out'
+  };
+  _buttons: Array<HTMLElement>;
   defaultExtent: [number, number, number, number] | undefined;
   constructor(opts: {
       targetId?: string,
@@ -21,20 +19,20 @@ export class ZoomExtentGroup extends Control {
     this.set('name', this.name);
     this.defaultExtent = opts.defaultExtent;
 
-    this.buttons_ = this.buttonDetails
+    this._buttons = Object.entries(this.icons)
       .filter(b => opts.defaultExtent ? true : b[0] !== 'Reset View')
       .map(b => {
-        const button_ = document.createElement('button');
-        button_.title = b[0];
-        button_.setAttribute('type', 'button');
-        button_.appendChild(generatePointSVG(b[1] as BSIconOptions, false));
-        button_.onclick = this.handleClick.bind(this);
+        const _btn = document.createElement('button');
+        _btn.title = b[0];
+        _btn.setAttribute('type', 'button');
+        _btn.innerHTML = `<span class="bi bi-${b[1]}"></span>`;
+        _btn.onclick = this.handleClick.bind(this);
 
-        return button_;
+        return _btn;
       });
 
     this.element.className = 'ol-unselectable ol-custom-control';
-    this.buttons_.forEach(b => this.element.appendChild(b));
+    this.element.append(...this._buttons);
   }
   handleClick(e: MouseEvent): void {
     e.preventDefault();
