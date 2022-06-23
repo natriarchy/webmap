@@ -1,0 +1,16 @@
+span.bs-icon {
+    font-family: "bootstrap-icons" !important;
+    pointer-events: none;
+}
+
+span.bi {
+    pointer-events: none !important;
+}
+
+.bi::before,
+[class^="bi-"]::before,
+[class*=" bi-"]::before {
+    display: inherit !important;
+    pointer-events: none !important;
+    line-height: inherit !important;
+}

@@ -6,11 +6,11 @@ import { LyrConstants, LyrStyleOpts } from '../models';
 import { generatePointSVG } from '../utils/fns-utility';
 
 export class LyrStylr<ST extends LyrConstants['style-type'], FT extends LyrConstants['feat-type']>{
-  public type: LyrConstants['style-type'];
-  public geom: LyrConstants['feat-type'];
-  public opts: LyrStyleOpts<ST, FT>;
+  type: LyrConstants['style-type'];
+  geom: LyrConstants['feat-type'];
+  opts: LyrStyleOpts<ST, FT>;
 
-  public makeStyleFn: (_lyrType: 'VectorLayer'|'VectorTileLayer') => Style|Array<Style>|StyleFunction;
+  makeStyleFn: (type: 'VectorLayer'|'VectorTileLayer') => Style|Array<Style>|StyleFunction;
 
   constructor(type: ST, geom: FT, opts: LyrStyleOpts<ST, FT>) {
     this.type = type;
@@ -31,14 +31,14 @@ export class LyrStylr<ST extends LyrConstants['style-type'], FT extends LyrConst
       } else {
         const yiqVal = rgbRaw.reduce((s,v,i,a) => s + (parseInt(v, isHex ? 16 : 10) * [299, 587, 114][i]), 0) / 1000;
         // If the YIQ is above 128 then it's considered a bright color.
-        return yiqVal >= 128 ? `rgba(100,100,100,${opacity})` : `rgba(245,245,245,${opacity})`;
+        return yiqVal >= 155 ? `rgba(100,100,100,${opacity})` : `rgba(245,245,245,${opacity})`;
       }
     };
     const sizeLvl = (size: 'xs'|'sm'|'rg'|'lg'|'xl' = 'rg') => ['xs','sm','rg','lg','xl'].indexOf(size);
-    const stroke = (stroke='rgba(150,150,150,0.5)', width: number, type?: 'solid'|'dashed'): Stroke => new Stroke(
+    const stroke = (stroke = 'rgba(150,150,150,0.5)', width: number, type?: 'solid'|'dashed'): Stroke => new Stroke(
       {color: stroke,width: width, lineDash: type === 'dashed' ? [5,4] : undefined}
     );
-    const strDiv = (txt: string, len=25, sep='\n'): string => {
+    const strDiv = (txt: string, len = 25, sep = '\n'): string => {
       const str = txt.replace(/(\(.+\)|Redev\w+|Census|Tract)/gi,'');
       if (str.length > len) {
           let p = len;
@@ -107,7 +107,7 @@ export class LyrStylr<ST extends LyrConstants['style-type'], FT extends LyrConst
       const checkPoint = () => !String((_baseOpts as any)['src']).match(/^(http|assets)/i);
       if (geom === 'Point' && type === 'basic' && checkPoint()) {
         (_baseOpts as any).src = generatePointSVG(
-          (opts.base as any).src ?? 'geo-alt-filled' as any,
+          (opts.base as any).src || 'geo-alt-filled' as any,
           true,
           {style: ['-webkit-',''].map(i => `${i}filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.3))`).join(';') + `;stroke:black;`}
         );

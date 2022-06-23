@@ -1,0 +1,14 @@
+// z-index Groups
+//// 0-100 - Normal Positioning
+//// 200 - Control Groupings
+$z-index-control-grps: 200;
+//// 250 - Feature Modals
+$z-index-modals-feature: 250;
+//// 300 - Control Panels
+$z-index-ctrl-panels: 300;
+//// 350 - Autocomplete Results
+$z-index-autocomplete: 350;
+//// 400 - Toast Messages
+$z-index-toast-msg: 400;
+//// 500 - Full Screen Modal Dialog
+$z-index-modal-dialog: 500;

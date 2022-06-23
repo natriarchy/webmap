@@ -1,0 +1,19 @@
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes movein {
+    0% {
+        opacity: 0;
+        overflow-y: hidden;
+    }
+    100% {
+        opacity: 1;
+        overflow-y: auto;
+    }
+}

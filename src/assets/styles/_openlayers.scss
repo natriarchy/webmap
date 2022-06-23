@@ -1,0 +1,66 @@
+.ol-control>button {
+    cursor: pointer !important;
+}
+
+.ol-scale-line {
+    background: rgba(0, 0, 0, 0.5) !important;
+    bottom: 0.45rem !important;
+    left: 0.5rem !important;
+    border-radius: 2px !important;
+    padding: 0.2em !important;
+}
+
+.ol-scale-line-inner {
+    border-top: none !important;
+    font: 0.75rem 'Segoe UI', 'Open Sans', sans-serif !important;
+    height: 0.85rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ol-attribution {
+    bottom: 2rem !important;
+    padding: 0rem !important;
+    &.ol-collapsed {
+        background-color: transparent !important;
+    }
+    &:not(.ol-collapsed) {
+        background-color: white !important;
+        border: 1px solid rgba(0, 0, 0, 0.5) !important;
+    }
+    ul {
+        &::before {
+            content: "Attributions";
+            font-size: 1rem;
+            display: block;
+            font-weight: 600;
+            text-align: center;
+        }
+        max-width: 20rem;
+        max-height: 30vh;
+        overflow-y: auto;
+        list-style-type: circle;
+        text-align: center;
+        margin: 0.5em !important;
+        li {
+            font-size: .9rem;
+        }
+        li:not(:last-child)::after {
+            content: ", " !important;
+            font-size: 1rem;
+            display: inline;
+        }
+    }
+    button {
+        margin: 0 !important;
+        height: calc(1.2rem + 3px) !important;
+        width: calc(1.2rem + 3px) !important;
+        background-color: rgba(0, 0, 0, 0.5) !important;
+        position: fixed;
+        bottom: 0.45rem;
+        padding: 0 !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }
+}

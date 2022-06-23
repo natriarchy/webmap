@@ -1,0 +1,100 @@
+.search-element {
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: space-between;
+    align-items: center;
+    color: black;
+    -webkit-text-fill-color: black;
+    background: transparent !important;
+    height: 2.85em !important;
+    border-radius: 0 !important;
+    border: none;
+    cursor: text;
+    align-self: center;
+    span.bi {
+        display: flex;
+        -webkit-text-fill-color: black;
+        color: black;
+        font-size: 1.5rem;
+        height: 2em;
+        width: 2em;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+    }
+    .search-icon {
+        color: black;
+        -webkit-text-fill-color: black;
+        width: 2.85rem;
+        font-size: 1.5rem;
+    }
+    input {
+        border: none;
+        font-size: 1rem;
+        flex: 1 1 auto;
+        margin-right: 0.55rem;
+        border: 1px solid transparent;
+        &:focus-visible,
+        &:active {
+            outline: none;
+            border-bottom: 1px solid lightgray;
+        }
+    }
+    #search-clear {
+        display: none;
+    }
+}
+
+input[type="text"] {
+    &:-ms-input-placeholder,
+    &::-ms-input-placeholder,
+    &::placeholder {
+        -webkit-text-fill-color: rgb(150, 150, 150) !important;
+        color: rgb(150, 150, 150) !important;
+        font-weight: 300 !important;
+    }
+}
+
+:placeholder-shown {
+    -webkit-text-fill-color: rgb(150, 150, 150) !important;
+    color: rgb(150, 150, 150) !important;
+    font-weight: 300 !important;
+}
+
+.autocomplete-items {
+    position: fixed;
+    top: calc(0.55rem + 2.85rem);
+    left: calc(0.55rem + 2.85rem + 2.85rem);
+    width: calc(350px - 5.15em);
+    padding: 0 0.5em 0.5em 0.5em;
+    z-index: $z-index-autocomplete;
+    background: white;
+    box-shadow: 1px 3px 8px -4px black;
+    border-radius: 0 0 0.5em 0.5em;
+    border: 0.125em solid rgba(0, 0, 0, 0.5);
+    border-top: none;
+    div {
+        padding: 0.5em;
+        cursor: pointer;
+        background-color: white;
+        &:not(:first-of-type) {
+            border-top: 0.1em solid lightgray;
+        }
+        &.empty-results {
+            cursor: auto;
+        }
+        &:not(.empty-results):hover {
+            /*when hovering an item:*/
+            background-color: #e9e9e9;
+        }
+    }
+    @media only screen and (max-width: 576px) {
+        width: calc(100vw - 9.5rem);
+    }
+}
+
+.autocomplete-active {
+    /*when navigating through the items using the arrow keys:*/
+    background-color: DodgerBlue !important;
+    color: #ffffff;
+}

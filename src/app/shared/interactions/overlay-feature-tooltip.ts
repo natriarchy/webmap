@@ -7,6 +7,7 @@ export class FeatureTooltip extends Overlay {
   name = 'feature-tooltip';
   pointerInt: Pointer;
   selectInt: Select;
+
   constructor(opts: {tooltipId?: string;}) {
     super({
       positioning: 'top-left',
@@ -28,26 +29,24 @@ export class FeatureTooltip extends Overlay {
 
         return pointerMove(e) && checkCanvas && checkSetting && checkMWheel && !touchOnly(e);
       },
-      filter: (f,l) => !['click-selection','geolocation'].includes(l.getClassName()),
+      filter: (f,l) => l && !['click-selection','geolocation','measure-layer'].includes(l.getClassName()),
       hitTolerance: 5,
       style: null
     });
     this.selectInt.on('select', this.handleSelect.bind(this));
-    const observer = new MutationObserver((mutations, obs) => {
+    const observer = new MutationObserver((m, o) => {
       if (document.querySelector('.ol-overlaycontainer-stopevent')) {
         this.getMap()!.addInteraction(this.pointerInt);
         this.getMap()!.addInteraction(this.selectInt);
         console.info('Added Feat Hover Overlay and Interactions to Map');
-        obs.disconnect();
-        obs.takeRecords();
+        o.disconnect();
+        o.takeRecords();
         return;
       }
     });
-    observer.observe(document, {
-      childList: true,
-      subtree: true
-    });
+    observer.observe(document, { childList: true, subtree: true });
   }
+
   private handlePointerMove(e: MapBrowserEvent<any>): void {
     if (touchOnly(e)) return;
     const checkCanvas = (e.originalEvent.target.tagName === 'CANVAS' || e.originalEvent.target.className === 'ol-overlay-container ol-selectable');
@@ -57,7 +56,9 @@ export class FeatureTooltip extends Overlay {
     e.map.getTargetElement().style.cursor = hasFeat ? 'pointer' : 'initial';
     e.map.getOverlayById('pointer-tooltip').setPosition(hasFeat ? e.coordinate : undefined);
   }
+
   private handleSelect(e: SelectEvent): void {
+    const toTitle = (str: string): string => str.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
     const pointerTooltipEl = this.element;
     if (e.selected.length === 0) {
       pointerTooltipEl.innerHTML === '';
@@ -66,33 +67,29 @@ export class FeatureTooltip extends Overlay {
       const lyr = this.selectInt.getLayer(e.selected[0]);
       const keyProp = lyr ? lyr.get('styleDetails').opts.keyProp : '';
       pointerTooltipEl.replaceChildren(
-        this.createElementWith('table', {
+        this.newEl('table', {
           class: 'map-table basic',
-          innerHTML: `<tr><th>${this.makeTitleCase(lyr.getClassName(),'-')}</th></tr><tr><td>${(e.selected[0].getId()||e.selected[0].get(keyProp)) as string}</td></tr>`
+          innerHTML: `<tr><th>${toTitle(lyr.getClassName())}</th></tr><tr><td>${String(e.selected[0].getId() || e.selected[0].get(keyProp))}</td></tr>`
         })
       );
     }
   }
-  private makeTitleCase(str: string, separator ? : string): string {
-    return str.split(separator || ' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
-  }
-  private createElementWith<HTMLType extends keyof HTMLElementTagNameMap>(
-    elementType: HTMLType,
-    setAttributes: { [key: string]: any }
-    ): HTMLElementTagNameMap[HTMLType] {
-    const newElement = document.createElement(elementType);
-    Object.entries(setAttributes).forEach(i => {
-        if (i[0] === 'children') {
-            newElement.append(...i[1]);
-        } else if (i[0] === 'innerHTML') {
-            newElement.innerHTML = i[1];
-        } else if (typeof i[1] === 'string' || i[0].startsWith('data')) {
-            newElement.setAttribute(i[0], String(i[1]));
-        } else {
-            Object.assign(newElement, Object.fromEntries([i]));
-        };
+
+  private newEl<HTMLType extends keyof HTMLElementTagNameMap>(
+    tag: HTMLType,
+    props: { [key: string]: any }
+  ): HTMLElementTagNameMap[HTMLType] {
+    const _newEl = document.createElement(tag);
+    Object.entries(props).forEach(a => {
+      if (a[0] === 'children') {
+        _newEl.append(...a[1]);
+      } else if (['checked','className','htmlFor','id','innerHTML','name','onclick','onchange','title','type'].includes(a[0])) {
+        Object.assign(_newEl, Object.fromEntries([a]));
+      } else {
+        _newEl.setAttribute(a[0], a[1]);
+      }
     });
 
-    return newElement as HTMLElementTagNameMap[HTMLType];
+    return _newEl;
   }
 }

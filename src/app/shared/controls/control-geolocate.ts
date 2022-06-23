@@ -4,9 +4,13 @@ import Point from 'ol/geom/Point';
 import VectorLayer from 'ol/layer/Vector';
 import { toLonLat } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
+import { Circle, Icon, Text } from 'ol/style';
+import Fill from 'ol/style/Fill';
+import Stroke from 'ol/style/Stroke';
+import Style from 'ol/style/Style';
 import { MapToast } from '../classes/map-toast.class';
 import { formatDMS } from '../utils/fns-google';
-import { makeIconStyle } from '../utils/generate-style';
+import { generatePointSVG } from '../utils/fns-utility';
 
 export class Geolocate extends Control {
   readonly name = 'geolocation';
@@ -30,12 +34,25 @@ export class Geolocate extends Control {
 
     this.positionFt = new Feature();
     this.positionFt.setId('Your Location');
+    this.positionFt.setStyle(
+      new Style({
+        image: new Circle({
+          fill: new Fill({color: 'rgb(51, 153, 204)'}),
+          stroke: new Stroke({color: 'white', width: 2}),
+          radius: 6
+        })
+      })
+    );
 
     this.accuracyFt = new Feature();
     this.accuracyFt.setId('Location Accuracy');
+    this.accuracyFt.setStyle(
+      new Style({fill: new Fill({ color: 'rgba(51, 153, 204, 0.1)' }) })
+    );
 
     this.glLayer = new VectorLayer({
       className: 'geolocation',
+      zIndex: 10,
       source: new VectorSource({ features: [this.accuracyFt, this.positionFt] })
     });
 
@@ -51,7 +68,7 @@ export class Geolocate extends Control {
   handleClick(e: MouseEvent): void {
     e.preventDefault();
     if (!this.active) {
-      this.getMap()!.addLayer(this.glLayer);
+      if (!this.getMap()!.getAllLayers().includes(this.glLayer)) this.getMap()!.addLayer(this.glLayer);
 
       this._gl.setTracking(true);
       this._gl.setProjection(this.getMap()!.getView().getProjection());
@@ -62,18 +79,21 @@ export class Geolocate extends Control {
         const posPt = this._gl.getPosition();
         if (posPt) {
           this.positionFt.setProperties({ geometry: new Point(posPt), location: posPt });
-          this.positionFt.setStyle(makeIconStyle({src: 'geo-alt-fill', label: 'Position Feature'}));
-          this.getMap()!.getView().animate({ center: posPt, zoom: 5, duration: 400 });
+          this.getMap()!.getView().animate({ center: posPt, zoom: 5, duration: 500 });
           this._toast.make({tone: 'info', header: 'Location: ', value: formatDMS(toLonLat(posPt)), timer: 'short'}).addClick('value');
+          setTimeout(() => {
+            this._gl.setTracking(false);
+            this.active = false;
+          }, 700);
         };
       });
       this._gl.once('change:accuracyGeometry', e => {
         const geom = this._gl.getAccuracyGeometry();
-        if (geom) this.accuracyFt.setGeometry(geom)
+        if (geom) this.accuracyFt.setGeometry(geom);
       });
       this._gl.once('error', () => console.warn('Geolocation Not Working!'));
     } else {
-      this.getMap()!.removeLayer(this.glLayer);
+      // this.getMap()!.removeLayer(this.glLayer);
       this._gl.setTracking(false);
       this.active = false;
     };

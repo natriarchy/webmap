@@ -7,6 +7,7 @@ const makeLabel = (className: string): HTMLSpanElement => {
 };
 
 export class FullScreenCustom extends FullScreen {
+  readonly name = 'full-screen';
   readonly icons = {
     label: 'fullscreen',
     labelActive: 'fullscreen-exit'
@@ -14,6 +15,7 @@ export class FullScreenCustom extends FullScreen {
   constructor(opts?: {targetId?: string}) {
     super({
       label: makeLabel('bi bi-fullscreen'),
+      tipLabel: 'Toggle Full Screen',
       labelActive: makeLabel('bi bi-fullscreen-exit')
     });
     const targetEl = document.getElementById(opts?.targetId || 'controltb-top-left') || document.createElement('section');

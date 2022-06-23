@@ -6,22 +6,27 @@ import { generalColorRamps } from '../utils/constants';
 import { LyrStylr } from './lyr-style';
 
 export class Lyr<LT extends LyrConstants['layer-type']>{
-  public instance: Layer<any, any>;
-  public lyrType: LyrConstants['layer-type'];
-  public src: LyrInitSrc<LT>;
-  public styleOpts?: {style: LyrConstants['style-type'], geom: LyrConstants['feat-type'], opts: LyrStyleOpts<any, any>};
-  constructor(lyrType: LT, state: LyrInitState, src: LyrInitSrc<LT>) {
-      this.lyrType = lyrType;
+  instance: Layer<any, any>;
+  type: LyrConstants['layer-type'];
+  src: LyrInitSrc<LT>;
+  styleOpts?: {style: LyrConstants['style-type'], geom: LyrConstants['feat-type'], opts: LyrStyleOpts<any, any>};
+
+  constructor(type: LT, state: LyrInitState, src: LyrInitSrc<LT>) {
+      this.type = type;
       this.src = src;
       const baseLyrObj = Object.assign(state, {
         className: state.className.replace(/(_|\s)/gi, '-').toLowerCase(),
-        lyrType: lyrType,
+        lyrType: type,
         visible: state.visible ? state.visible : false
       });
       this.instance = this.generateLayer(baseLyrObj, src);
   }
-  generateLayer(opts: LyrInitState, src: LyrInitSrc<LT>): Layer<any, any> {
-    switch (this.lyrType) {
+
+  generateLayer(
+    opts: LyrInitState,
+    src: LyrInitSrc<LT>
+  ): Layer<any, any> {
+    switch (this.type) {
       case 'TileLayer': return new TileLayer({
           ...opts,
           preload: Infinity,
@@ -46,12 +51,13 @@ export class Lyr<LT extends LyrConstants['layer-type']>{
         });
     };
   }
+
   setStyle(
     style: LyrConstants['style-type'],
     geom: LyrConstants['feat-type'],
     opts: LyrStyleOpts<any, any>
-    ): Lyr<LT> {
-    const lyrType = this.lyrType;
+  ): Lyr<LT> {
+    const lyrType = this.type;
     if (lyrType !== 'TileLayer' && style !== 'ramp-basic') {
       const newStyle = new LyrStylr(style, geom, opts);
       (this.instance as VectorLayer<any> | VectorTileLayer).setStyle(newStyle.makeStyleFn(lyrType));

@@ -1,0 +1,95 @@
+.layers-mgmt {
+    display: none;
+    height: calc(100% - 6rem);
+    width: calc(100% - 1.5rem);
+    font-size: 1rem;
+    margin: 0.75rem;
+    border-radius: 7px;
+    flex-direction: column;
+    background: white;
+    padding: 0.75rem;
+    overflow-y: auto;
+    &.standalone {
+        display: none;
+        position: fixed;
+        width: calc(350px - 1.5rem);
+        top: 3.95rem;
+        margin: 0;
+        left: 4.1rem;
+        max-height: calc(100vh - 6.5rem);
+        min-height: 50vh;
+        box-shadow: 0 0.15em 0.5em -0.2em black;
+        border: 0.1em solid;
+    }
+    &.pane {
+        display: flex;
+    }
+}
+
+.layers-list {
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px dotted gray;
+}
+
+.layers-ctrl {
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.layer {
+    display: flex;
+    align-items: center;
+    border-top: 0.5px solid lightgray;
+    flex-wrap: wrap;
+    padding: 0.25rem 0;
+    &.hidden {
+        display: none;
+    }
+    &:not(.hidden):first-of-type {
+        border-top: none !important;
+    }
+    .layer-label {
+        cursor: pointer;
+        flex: 1 1 70%;
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        .group {
+            font-size: 0.66rem;
+            font-weight: bold;
+            color: rgb(148, 160, 172);
+            text-transform: uppercase;
+        }
+    }
+    .layer-info {
+        flex: 1 1 15%;
+        font-size: 1rem;
+        -webkit-text-fill-color: slategray;
+        color: slategray;
+    }
+    input {
+        cursor: pointer;
+        width: 1.5rem;
+    }
+    &:hover label {
+        font-weight: 600;
+         :first-child {
+            text-decoration: underline;
+        }
+    }
+    .legend {
+        flex: 1 1 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 0.25rem 0.75rem;
+    }
+}

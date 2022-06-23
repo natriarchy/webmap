@@ -11,7 +11,7 @@ export class LayersMgmt extends Control {
     sort: 'sort-alpha-down'
   };
   _layersEl: HTMLElement;
-  _layersGroups: Set<string> = new Set();
+  _layersGrps: Set<string> = new Set();
 
   constructor(opts: {type: 'pane' | 'standalone'; targetId: string;}) {
     super({
@@ -53,38 +53,39 @@ export class LayersMgmt extends Control {
     observer.observe(document, { childList: true, subtree: true });
   }
   handleToggle(e: MouseEvent): void {
-    document.removeEventListener('click',this.handleClickOutside);
+    const handleClickOutside = (function (e: any) {
+      const lyrsDiv: HTMLElement = document.querySelector('.layers-mgmt')!;
+      const isSame = (keyEl: any, checkEls: Array<any>) => checkEls.includes(keyEl);
+      const isIn = (r: DOMRect) => (e.pageX < r.right && e.pageX > r.left && e.pageY < r.bottom && e.pageY > r.top);
+      const tests = [
+        isSame(document.querySelector('#layers-filter'), [(e.target as HTMLElement).parentElement, e.target]),
+        isIn(lyrsDiv.getBoundingClientRect()),
+        isSame(lyrsDiv.previousElementSibling, [(e.target as HTMLElement).parentElement, e.target])
+      ];
+      if (tests.every(v => v === false)) {
+        lyrsDiv.style.display = 'none';
+        lyrsDiv.previousElementSibling!.setAttribute('data-active', 'false');
+        lyrsDiv.previousElementSibling!.classList.remove('dropdown-open');
+        document.removeEventListener('click', handleClickOutside);
+      };
+      return;
+    });
+    document.removeEventListener('click', handleClickOutside);
     const btn = e.currentTarget as HTMLElement;
-    const state = btn.getAttribute('data-active') === 'true';
+    let state = btn.getAttribute('data-active') === 'true';
     btn.setAttribute('data-active', String(!state));
+    state = btn.getAttribute('data-active') === 'true';
     btn.classList.toggle('dropdown-open');
-    if (!state) {
-      document.addEventListener('click', this.handleClickOutside);
+    if (state) {
+      document.addEventListener('click', handleClickOutside);
       this._layersEl.style.display = 'flex';
     };
     this._layersEl.animate(
       [{opacity: 0, 'overflow-y': 'hidden'}, {opacity: 1, 'overflow-y': 'auto'}],
-      {duration: 250, direction: state ? 'reverse' : 'normal'}
+      {duration: 250, direction: state ? 'normal' : 'reverse'}
     ).onfinish = e => {
-      this._layersEl.style.display = state ? 'none' : 'flex';
+      this._layersEl.style.display = state ? 'flex' : 'none';
     };
-  }
-  handleClickOutside(e: any): void {
-    const lyrsDiv: HTMLElement = document.querySelector('.layers-mgmt')!;
-    const isSame = (keyEl: any, checkEls: Array<any>) => checkEls.includes(keyEl);
-    const isIn = (r: DOMRect) => (e.pageX < r.right && e.pageX > r.left && e.pageY < r.bottom && e.pageY > r.top);
-    const tests = [
-      isSame(document.querySelector('#layers-filter'), [(e.target as HTMLElement).parentElement, e.target]),
-      isIn(lyrsDiv.getBoundingClientRect()),
-      isSame(lyrsDiv.previousElementSibling, [(e.target as HTMLElement).parentElement, e.target])
-    ];
-    if (tests === [true,true,true]) {
-      lyrsDiv.style.display = 'none';
-      lyrsDiv.previousElementSibling!.setAttribute('data-active', 'false');
-      lyrsDiv.previousElementSibling!.classList.remove('dropdown-open');
-      document.removeEventListener('click', this.handleClickOutside);
-    };
-    return;
   }
   generateLayers(): void {
     const _layersList = document.createElement('div');
@@ -94,13 +95,13 @@ export class LayersMgmt extends Control {
       .filter(l => !!l.get('group'))
       .forEach(l => {
         const layerEl = this.makeLayerEl(l);
-        this._layersGroups.add(l.get('group'));
+        this._layersGrps.add(l.get('group'));
         _layersList.appendChild(layerEl);
       }
     );
-    if (this._layersGroups.size > 0) {
+    if (this._layersGrps.size > 0) {
       const ctrlVals = {
-        'filter': ['--Show All Layers--', '--Visible Layers--', ...Array.from(this._layersGroups)].map(
+        'filter': ['--Show All Layers--', '--Visible Layers--', ...Array.from(this._layersGrps)].map(
           (v,i) => ({label: v, value: i < 2 ? {0: '', 1: 'true'}[i] : v})
         ),
         'sort': ['name','group','visible'].map(i => ({label: i}))

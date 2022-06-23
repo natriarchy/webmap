@@ -1,0 +1,88 @@
+#toast-element {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    z-index: $z-index-toast-msg;
+    bottom: 2.55rem;
+    left: 0.55rem;
+    right: 0.55rem;
+    &.hidden {
+        display: none;
+    }
+    &.warning .toast-container {
+        background: salmon !important;
+    }
+    &.info .toast-container {
+        background: rgb(135, 206, 250) !important;
+    }
+}
+
+.toast-container {
+    border-radius: 0.4rem;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: calc(100vw - 1.1rem);
+    pointer-events: fill;
+    background: white;
+    border: 0.15rem solid black;
+    cursor: pointer;
+    animation-name: fadeIn;
+    animation-duration: 500ms;
+    animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    @media only screen and (max-width: 576px) {
+        width: 100%;
+    }
+}
+
+.toast-header {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    .toast-icon {
+        color: black;
+        -webkit-text-fill-color: black;
+    }
+    .webmap-btn {
+        border: none;
+        padding: 0.3rem;
+    }
+    .toast-title {
+        font-size: 1.1rem;
+        padding: 0 1rem;
+        border-right: 0.1rem solid;
+    }
+}
+
+.toast-body {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    padding: 0.1rem;
+    flex-direction: row;
+    border-radius: 0.2rem;
+    justify-content: center;
+    background: rgb(198, 204, 210);
+    margin-top: 0.25rem;
+    .webmap-btn {
+        font-size: 1.2rem;
+    }
+}
+
+#toast-timer {
+    width: 100%;
+    height: 0.5rem;
+    background: white;
+    border-radius: 1rem;
+    margin: 0.5rem 0 0 0;
+    border: 0.1rem solid lightgray;
+    div {
+        height: 100%;
+        width: 0%;
+        background: lightgray;
+        border-radius: 1rem;
+        transform-origin: 0% 50%;
+        animation-timing-function: linear;
+    }
+}

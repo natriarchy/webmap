@@ -1,0 +1,89 @@
+input.hide-input,
+.hide-input input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.input-field-group {
+    display: flex;
+    flex: 0 1 4rem;
+    align-items: center;
+    padding: 0.3rem 0.15rem;
+    &.for-text {
+        align-items: stretch;
+        flex-flow: column;
+        label,
+        input {
+            cursor: auto !important;
+            flex: 1 1 100% !important;
+        }
+    }
+    &:not(:first-of-type):not(.hide-input) {
+        border-top: 0.5px solid lightgray;
+    }
+    &.full-width {
+        flex: 1 1 100%;
+    }
+    &.hide-input {
+        flex: 1 1 auto;
+    }
+    .webmap-btn {
+        font-size: 1.2rem;
+        padding: 0.2rem;
+        border: 0.15rem solid transparent;
+    }
+    label,
+    input,
+    button,
+    select {
+        cursor: pointer;
+        flex: 1 1 25%;
+        white-space: normal;
+        padding: 0.2rem;
+        border-radius: 0.25rem;
+        border: 0.15rem solid transparent;
+    }
+    input[type='text'] {
+        border: 0.5px solid lightgray;
+    }
+    label:not(.webmap-btn) {
+        flex: 1 1 75%;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        svg {
+            pointer-events: none;
+            display: flex;
+        }
+    }
+    &.hide-input label:not(.webmap-btn) {
+        flex: 1 1 auto;
+        color: lightgray;
+        -webkit-text-fill-color: lightgray;
+        background: transparent;
+        border: 0.15rem solid lightgray;
+        justify-content: center;
+        &:hover {
+            color: grey;
+            -webkit-text-fill-color: grey;
+            border-color: grey;
+        }
+        &:active {
+            background: lightgray;
+        }
+    }
+    &.hide-input input,
+    input.hide-input {
+        &:checked+label {
+            color: black;
+            -webkit-text-fill-color: black;
+            border-color: black;
+        }
+    }
+    select {
+        background: rgb(225, 225, 225);
+        flex: 1 1 auto;
+    }
+}

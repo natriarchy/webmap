@@ -41,26 +41,29 @@ export class FeatClickModal extends Select {
 
   makeModal(featId: string, featLayer: string, attributes: object): HTMLElement {
     this.detroyModal();
-    const actionBtn = this.createElementWith('button', {
+    const actionBtn = this.newEl('button', {
       type: 'button',
       class: 'webmap-btn',
       title: 'Zoom to Feature',
-      innerHTML: this.createSVGIcon('zoom-in').outerHTML,
+      innerHTML: '<span class="bi bi-zoom-in"></span>',
       onclick: (e: MouseEvent) => this.featAction('zoom')
     });
-    const closeBtn = this.createElementWith('button', {
+    const closeBtn = this.newEl('button', {
       type: 'button',
       class: 'modal-close webmap-btn',
-      innerHTML: this.createSVGIcon('x').outerHTML,
+      innerHTML: '<span class="bi bi-x"></span>',
       onclick: (e: any) => this.detroyModal()
     });
-    const newModalEl = this.createElementWith('section', {
+    const newModalEl = this.newEl('section', {
       id: 'modal-element',
-      class: 'feature-detail',
+      class: '--feature',
       innerHTML: `
         <div class="modal-container">
           <div class="modal-header">
-            <h3><span>${featId}</span><span>${featLayer}</span></h3>
+            <div class="modal-title">
+              <h3>${featId}</h3>
+              <h4>${featLayer}</h4>
+            </div>
           </div>
           <div class="modal-body">${this.makeTable(attributes)}</div>
           <div class="modal-actions"></div>
@@ -97,52 +100,27 @@ export class FeatClickModal extends Select {
     const tableRows = Object.entries(attributes)
       .filter(a => !['geometry', '_symbol', 'layer'].includes(a[0]))
       .map(e => `<tr><td class='prop'>${e[0]}</td><td class='val'>${e[1]}</td></tr>`);
-    return this.createElementWith('table', {
+    return this.newEl('table', {
       class: 'map-table attribute',
       innerHTML: '<tr><th>Property</th><th>Value</th></tr>' + tableRows.join('')
     }).outerHTML;
   }
 
-  private createElementWith<HTMLType extends keyof HTMLElementTagNameMap>(
-    elementType: HTMLType,
-    setAttributes: { [key: string]: any }
-    ): HTMLElementTagNameMap[HTMLType] {
-    const newElement = document.createElement(elementType);
-    Object.entries(setAttributes).forEach(i => {
-        if (i[0] === 'children') {
-            newElement.append(...i[1]);
-        } else if (i[0] === 'innerHTML') {
-            newElement.innerHTML = i[1];
-        } else if (typeof i[1] === 'string' || i[0].startsWith('data')) {
-            newElement.setAttribute(i[0], String(i[1]));
-        } else {
-            Object.assign(newElement, Object.fromEntries([i]));
-        };
+  private newEl<HTMLType extends keyof HTMLElementTagNameMap>(
+    tag: HTMLType,
+    props: { [key: string]: any }
+  ): HTMLElementTagNameMap[HTMLType] {
+    const _newEl = document.createElement(tag);
+    Object.entries(props).forEach(a => {
+      if (a[0] === 'children') {
+        _newEl.append(...a[1]);
+      } else if (['checked','className','htmlFor','id','innerHTML','name','onclick','onchange','title','type'].includes(a[0])) {
+        Object.assign(_newEl, Object.fromEntries([a]));
+      } else {
+        _newEl.setAttribute(a[0], a[1]);
+      }
     });
 
-    return newElement as HTMLElementTagNameMap[HTMLType];
+    return _newEl;
   }
-
-  private createSVGIcon(shape: 'x'|'zoom-in'): SVGElement {
-    const newElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    const paths = {
-      'x': '<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>',
-      'zoom-in': `
-      <path fill-rule="evenodd" d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
-      <path d="M10.344 11.742c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1 6.538 6.538 0 0 1-1.398 1.4z"/>
-      <path fill-rule="evenodd" d="M6.5 3a.5.5 0 0 1 .5.5V6h2.5a.5.5 0 0 1 0 1H7v2.5a.5.5 0 0 1-1 0V7H3.5a.5.5 0 0 1 0-1H6V3.5a.5.5 0 0 1 .5-.5z"/>
-      `
-    };
-    newElement.innerHTML = paths[shape];
-    Object.entries({
-      'xmlns': 'http://www.w3.org/2000/svg',
-      'viewBox': '0 0 16 16',
-      'height': '1em',
-      'width': '1em',
-      'fill': 'currentColor',
-      'stroke': 'none'
-    }).forEach(i => newElement.setAttribute(i[0], i[1]));
-
-    return newElement;
-  };
 }

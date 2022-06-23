@@ -184,28 +184,34 @@ export interface ArcPropInfo extends IObject {
   Shape__Length?: number;
 }
 
-type InitVals = {
-  "button": undefined;
-  "checkbox": boolean;
-  "radio": boolean | string | number;
-  "select": string;
-}
-
-export type SettingType<T extends keyof InitVals> = {
+export type FormTypes = {
+  "button": {label: string; value?: boolean | string | number;};
+  "checkbox": {value: boolean;};
+  "radio": Array<{label: string; value: boolean | string | number; }>;
+  "select": Array<{label: string; value: string | number; }>;
+  "text": {value: string;};
+};
+export interface FormInputEl <T extends keyof FormTypes> {
+  id: string;
   type: T;
-  options: Array<T extends 'button' ? {label: string} : {label: string; value: InitVals[T]; }>;
-  fn?: (e: any) => any;
-} & (
-  T extends 'checkbox' ? {} : {outerLabel: string;}
-);
+  label: string;
+  options: FormTypes[T];
+  fnOpts?: {type: 'click'|'change', fn: (e: any) => any};
+};
+export type Setting<T extends keyof FormTypes> = {
+  type: T;
+  label: string;
+  actions: FormTypes[T];
+  fnOpts: {type: 'click'|'change', fn: (e: any) => any};
+};
 
 export interface InitSettings {
-  "AllowSelectHover": SettingType<"checkbox">;
-  "AllowFeatureClickModal": SettingType<"checkbox">;
-  "ShowCursorCoords": SettingType<"checkbox">;
+  "AllowSelectHover": Setting<"checkbox">;
+  "AllowFeatureClickModal": Setting<"checkbox">;
+  "ShowCursorCoords": Setting<"checkbox">;
 }
 export interface SettingsOptions extends InitSettings {
-  [setting: string]: SettingType<'button'> | SettingType<'checkbox'> | SettingType<'radio'> | SettingType<'select'>;
+  [setting: string]: Setting<'button'> | Setting<'checkbox'> | Setting<'radio'> | Setting<'select'>;
 }
 
 export interface MapTableOpts {

@@ -1,0 +1,11 @@
+// old dynamic length base was calc(2rem + 1vh);
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    font-family: 'Segoe UI', 'Open Sans', sans-serif;
+    margin: 0 !important;
+    font-size: 100%;
+}

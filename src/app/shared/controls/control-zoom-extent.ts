@@ -3,7 +3,7 @@ import { fromExtent } from 'ol/geom/Polygon';
 import Control from 'ol/control/Control';
 
 export class ZoomExtent extends Control {
-  readonly name = 'zoom-extent-grp';
+  readonly name = 'zoom-extent';
   readonly icons = {
     'Zoom In': 'zoom-in',
     'Reset View': 'house',

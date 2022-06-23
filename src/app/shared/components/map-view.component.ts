@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
-import { Map, Object, View } from 'ol';
+import { Map, View } from 'ol';
+import OLObj from 'ol/Object';
 import { Attribution, ScaleLine } from 'ol/control';
 import { defaults, DragPan } from 'ol/interaction';
 import { fromLonLat } from 'ol/proj';
@@ -21,6 +22,7 @@ import { ZoomExtent } from '../controls/control-zoom-extent';
 import { FeatureTooltip } from '../interactions/overlay-feature-tooltip';
 import { FeatClickModal } from '../interactions/interaction-feat-click';
 import { Lyr } from '../classes/map-lyr';
+import { ExportMap } from '../controls/control-export-map';
 
 @Component({
   selector: 'app-map-view',
@@ -75,7 +77,7 @@ export class MapViewComponent implements OnInit {
       })
     });
     // Initialize interaction settings for map object
-    this.instance.set('settings', new Object({'AllowSelectHover': true, 'AllowFeatureClickModal': true}));
+    this.instance.set('settings', new OLObj({'AllowSelectHover': true, 'AllowFeatureClickModal': true}));
   }
   ngOnInit(): void {
     this.instance.setTarget('map-instance');
@@ -99,7 +101,8 @@ export class MapViewComponent implements OnInit {
             attribution: '<span>Imagery ©2020 Bluesky, Maxar Technologies, Sanborn, USDA Farm Service Agency, <a href="https://www.google.com/permissions/geoguidelines/attr-guide/">Google Streets & Satellite 2020</a></span>'
           }
         ]}),
-        new FullScreenCustom()
+        new FullScreenCustom(),
+        new ExportMap()
     ]));
     this.instance.getControls().extend(new ControlToolbarEl({position: 'top'}).with([
         new Search({})

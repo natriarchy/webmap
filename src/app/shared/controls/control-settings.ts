@@ -1,9 +1,8 @@
-import { Object as OLObj } from 'ol';
+import OLObj from 'ol/Object';
 import Control from 'ol/control/Control';
 import { MapModal } from '../classes/map-modal.class';
 import { MapToast } from '../classes/map-toast.class';
-import { InitSettings, SettingsOptions } from '../models';
-import { createFormField } from '../utils/fns-utility';
+import { Setting, SettingsOptions } from '../models';
 
 export class Settings extends Control {
   readonly name = 'settings';
@@ -11,11 +10,11 @@ export class Settings extends Control {
   layersPaneActive = false;
   settingsObj: OLObj = new OLObj();
   baseSettings: SettingsOptions = {
-    'AllowSelectHover': { type: 'checkbox', options: [{label: 'Allow Hover Select Interaction', value: true}], fn: (e) => this.toggleSetting(e, 'AllowSelectHover')  },
-    'AllowFeatureClickModal': { type: 'checkbox', options: [{label: 'Allow Click Select Interaction', value: true}], fn: (e) => this.toggleSetting(e, 'AllowFeatureClickModal')  },
-    'ShowCursorCoords': { type: 'checkbox', options: [{label: 'Show Cursor Coordinates', value: false}], fn: (e) => this.toggleSetting(e, 'ShowCursorCoords') },
-    'OtherAction': { type: 'button', outerLabel: 'Generate Temporary Toast Message', options: [{label: 'Make Toast'}], fn: this.makeToast.bind(this) },
-    'Modal Button': { type: 'button', outerLabel: 'Generate Modal Element', options: [{label: 'Make Modal'}], fn: this.makeModal.bind(this) }
+    'AllowSelectHover': { type: 'checkbox', label: 'Allow Hover Select Interaction', actions: { value: true }, fnOpts: {type: 'change', fn: (e) => this.toggleSetting(e, 'AllowSelectHover')}},
+    'AllowFeatureClickModal': { type: 'checkbox', label: 'Allow Click Select Interaction', actions: {value: true}, fnOpts: {type: 'change', fn: (e) => this.toggleSetting(e, 'AllowFeatureClickModal')}},
+    'ShowCursorCoords': { type: 'checkbox', label: 'Show Cursor Coordinates', actions: {value: false}, fnOpts: {type: 'change', fn: (e) => this.toggleSetting(e, 'ShowCursorCoords')}},
+    'OtherAction': { type: 'button', label: 'Generate Temporary Toast Message', actions: {label: 'Make Toast'}, fnOpts: {type: 'click', fn: this.makeToast.bind(this) }},
+    'Modal Button': { type: 'button', label: 'Generate Modal Element', actions: {label: 'Make Modal'}, fnOpts: {type: 'click', fn: this.makeModal.bind(this)}}
   };
   constructor(
     opts?: {targetId?: string; initSettings?: SettingsOptions;}) {
@@ -24,12 +23,9 @@ export class Settings extends Control {
     this.set('icon', this.icon);
     if (opts?.initSettings) Object.assign(this.baseSettings, opts.initSettings);
     this.element.className = 'pane-section-container '+this.name;
-    const settingEls = Object.entries(this.baseSettings).map(s => createFormField(
-      s[1].type,
-      false,
-      s[1].options,
-      s[1].type === 'checkbox' ? undefined : {label: s[1].outerLabel, group: 'set_'+s[0].replace(' ', ''), addClass: undefined},
-      s[1].fn ? {type: 'click', fn: s[1].fn} : undefined
+    const settingEls = Object.entries(this.baseSettings).map(s => this.makeSetting(
+      s[0],
+      s[1]
     ));
     settingEls.forEach(s => this.element.appendChild(s));
     const ctrlList = document.createElement('ol');
@@ -41,16 +37,27 @@ export class Settings extends Control {
       };
       ctrlList.appendChild(li);
     };
-    const observer = new MutationObserver((mutations, obs) => {
+    const updateSettings = (obj: OLObj, init = false) => Object.entries(obj.getProperties()).forEach(e => {
+      const settingKeys = init ? Object.keys(this.baseSettings) : this.settingsObj.getKeys();
+      if (!settingKeys.includes(e[0])) {
+        this.element.appendChild(this.makeSetting(e[0], e[1]));
+      }
+    });
+    const observer = new MutationObserver((m, o) => {
       if (document.querySelector('.ol-overlaycontainer-stopevent')) {
         this.settingsObj = this.getMap()!.get('settings');
-        this.settingsObj.on('change', s => console.info(s));
+        updateSettings(this.settingsObj, true);
+        console.info(this.settingsObj);
+        this.settingsObj.on('change', s => {
+          updateSettings(s.target as OLObj);
+          this.settingsObj = s.target as OLObj;
+        });
         this.getMap()!.getControls().forEach(
           c => c.get('name') ? makeLI(c.get('name'), c) : null
         );
         this.element.appendChild(ctrlList);
-        obs.disconnect();
-        obs.takeRecords();
+        o.disconnect();
+        o.takeRecords();
         return;
       }
     });
@@ -74,5 +81,45 @@ export class Settings extends Control {
   }
   makeModal(e: any) {
     new MapModal({type: 'feature', header: 'Example Feature Modal', subheader: 'Layer Name', description: 'Descriptions of features, with data etc.'});
+  }
+  makeSetting(id: string, opts: Setting<'button'> | Setting<'checkbox'> | Setting<'radio'> | Setting<'select'>): HTMLElement {
+    const fixStr = (str: string | undefined) => str ? str.replace(/(_|\s|\&)/gi, '-').toLowerCase() : undefined;
+    const elID = `${fixStr(id)}-${opts.type}`;
+    let actionEls: Array<HTMLElement>;
+    if (opts.type === 'select') {
+      actionEls = [this.newEl('select', {id: elID, innerHTML: opts.actions.map(iv => `<option value="${iv.value}">${iv.label}</option>`).join('')})];
+    } else if (Array.isArray(opts.actions)) {
+      actionEls = opts.actions.map(a => this.newEl('input', {
+        type: opts.type,
+        value: a.value || a.label,
+        onclick: opts.fnOpts.type === 'click' ? opts.fnOpts.fn : undefined,
+        onchange: opts.fnOpts.type === 'change' ? opts.fnOpts.fn : undefined,
+        ...(opts.type === 'radio' && {name: fixStr(elID)+'-grp', checked: a.value || false})
+      }));
+    } else {
+      actionEls = [this.newEl(opts.type === 'button' ? 'button' : 'input', {
+        type: opts.type,
+        id:  elID,
+        title: opts.label,
+        innerHTML: opts.type === 'button' ? opts.actions.label : undefined,
+        onclick: opts.fnOpts.type === 'click' ? opts.fnOpts.fn : undefined,
+        onchange: opts.fnOpts.type === 'change' ? opts.fnOpts.fn : undefined,
+        ...(opts.type === 'checkbox' && {checked: opts.actions.value || false})
+      })];
+    };
+    return this.newEl('div', { class: 'input-field-group', children: [ this.newEl('label', {for: elID, innerHTML: opts.label }), ...actionEls ] });
+  }
+  private newEl<HTMLType extends keyof HTMLElementTagNameMap>(tag: HTMLType, props: { [key: string]: any }): HTMLElementTagNameMap[HTMLType] {
+    const _newEl = document.createElement(tag);
+    Object.entries(props).forEach(e => {
+      if (e[0] === 'children') {
+        _newEl.append(...e[1])
+      } else if (['checked','className','htmlFor','id','innerHTML','name','onclick','onchange','title','type'].includes(e[0])) {
+        Object.assign(_newEl, Object.fromEntries([e]));
+      } else {
+        _newEl.setAttribute(e[0], e[1]);
+      }
+    });
+    return _newEl;
   }
 }

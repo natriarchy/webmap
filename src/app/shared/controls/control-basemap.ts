@@ -3,6 +3,8 @@ import Control from 'ol/control/Control';
 import TileLayer from 'ol/layer/Tile';
 import XYZ from 'ol/source/XYZ';
 import tippy from 'tippy.js';
+import { Setting } from '../models';
+import { MapModal } from '../classes/map-modal.class';
 
 interface BasemapInfo {
   name: string;
@@ -14,7 +16,7 @@ interface BasemapInfo {
 export class BasemapToggle extends Control {
   readonly name = 'basemap-toggle';
   readonly icons = {
-    ctrl: {id: 'map-fill', html: '&#xF47E;'}
+    ctrl: 'map-fill'
   };
   _ctrlBtn: HTMLElement;
   _dropdownEl: HTMLElement;
@@ -28,7 +30,7 @@ export class BasemapToggle extends Control {
     this._ctrlBtn = document.createElement('button');
     this._ctrlBtn.title = 'Set Basemap';
     this._ctrlBtn.setAttribute('type', 'button');
-    this._ctrlBtn.innerHTML = '<span class="bs-icon">'+this.icons.ctrl.html+'</span>';
+    this._ctrlBtn.innerHTML = `<span class="bi bi-${this.icons.ctrl}"></span>`;
     this._ctrlBtn.onclick = e => e.preventDefault();
 
     this.element.className = 'ol-unselectable ol-custom-control';
@@ -60,6 +62,34 @@ export class BasemapToggle extends Control {
         }
       }
     );
+    const observer = new MutationObserver((m, o) => {
+      if (document.querySelector('.ol-overlaycontainer-stopevent')) {
+        const map = this.getMap()!;
+        const settings: OLObj = map.get('settings');
+        const settingObj: Setting<'button'> = {
+          type: 'button',
+          label: 'Add Basemap Layer',
+          actions: {label: this._ctrlBtn.innerHTML},
+          fnOpts: {type: 'click', fn: (e) => {
+            new MapModal({type: 'dialog', header: 'Add Basemap Layer', subheader: 'Fill Out the Form', content: [
+              { id: 'basemap-name', type: 'text', label: 'Name', options: {value: ''} },
+              { id: 'basemap-url', type: 'text', label: 'URL', options: {value: 'https://'} },
+              { id: 'basemap-attr', type: 'text', label: 'Attributions', options: {value: ''} },
+              { id: 'basemap-active', type: 'checkbox', label: 'Make Active Basemap?', options: {value: true} }
+            ]})
+          }}
+        };
+        settings.set(this.name, settingObj);
+        settings.changed();
+        o.disconnect();
+        o.takeRecords();
+        return;
+      }
+    });
+    observer.observe(document, {
+      childList: true,
+      subtree: true
+    });
   }
   changeBasemap(btn: HTMLElement): void {
     const map = this.getMap()!;

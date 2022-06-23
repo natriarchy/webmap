@@ -3,6 +3,7 @@ import { FeatureLike } from 'ol/Feature';
 import { Circle, LineString, Point, Polygon } from 'ol/geom';
 import GeometryType from 'ol/geom/GeometryType';
 import Draw from 'ol/interaction/Draw';
+import OLObj from 'ol/Object';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { getArea, getLength } from 'ol/sphere';
@@ -132,7 +133,7 @@ export class Measure extends Control {
       stopClick: true,
       style: (f) => this.styleFn(f, tip)
     });
-    ['AllowSelectHover','AllowSelectClick'].forEach(s => map.set(s, false));
+    ['AllowSelectHover','AllowSelectClick'].forEach(s => (map.get('settings') as OLObj).set(s, false));
     this.drawInteraction.set('type','Draw');
     this.drawInteraction.on('drawstart', () => { this.measureLyr.getSource().clear(); tip = activeTip; });
     this.drawInteraction.on('drawend', () => { tip = idleTip; });
@@ -150,7 +151,7 @@ export class Measure extends Control {
     map.removeLayer(map.getAllLayers().find(l => l.getClassName() === 'measure-layer')!);
     this.drawInteraction = undefined;
     this.measureLyr.getSource().clear();
-    ['AllowSelectHover','AllowSelectClick'].forEach(s => map.set(s, true));
+    ['AllowSelectHover','AllowSelectClick'].forEach(s => (map.get('settings') as OLObj).set(s, true));
     console.info('Exiting Measure Tool...');
   }
   handleEscKey(e: any): void {
