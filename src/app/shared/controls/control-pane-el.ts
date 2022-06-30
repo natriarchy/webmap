@@ -75,7 +75,7 @@ export class ControlPaneEl extends Control {
       _radio.id = 'pane-radio-' + section;
       _radio.value = section;
       const _label = document.createElement('label');
-      _label.className = 'pane-section-label webmap-btn';
+      _label.className = 'pane-section-label map-btn --icon';
       _label.htmlFor = 'pane-radio-' + section;
       _label.innerHTML = `<span class="bi bi-${icon}"></span>`;
       return _radio.outerHTML + _label.outerHTML;

@@ -29,7 +29,7 @@ input.hide-input,
     &.hide-input {
         flex: 1 1 auto;
     }
-    .webmap-btn {
+    .map-btn {
         font-size: 1.2rem;
         padding: 0.2rem;
         border: 0.15rem solid transparent;
@@ -39,7 +39,7 @@ input.hide-input,
     button,
     select {
         cursor: pointer;
-        flex: 1 1 25%;
+        flex: 1 1 auto;
         white-space: normal;
         padding: 0.2rem;
         border-radius: 0.25rem;
@@ -48,7 +48,7 @@ input.hide-input,
     input[type='text'] {
         border: 0.5px solid lightgray;
     }
-    label:not(.webmap-btn) {
+    label:not(.map-btn) {
         flex: 1 1 75%;
         display: flex;
         justify-content: space-between;
@@ -58,7 +58,7 @@ input.hide-input,
             display: flex;
         }
     }
-    &.hide-input label:not(.webmap-btn) {
+    &.hide-input label:not(.map-btn) {
         flex: 1 1 auto;
         color: lightgray;
         -webkit-text-fill-color: lightgray;

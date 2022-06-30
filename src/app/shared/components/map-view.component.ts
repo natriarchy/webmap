@@ -133,7 +133,7 @@ export class MapViewComponent implements OnInit {
       }),
       new Lyr('VectorLayer', {group: 'Transit', className: 'Rail Stations', zIndex: 6, visible: true}, {
         url: 'assets/data/transit_njt.geojson'
-      }).setStyle('ramp-special','Point', {
+      }).addStyle('ramp-special','Point', {
         keyProp: 'STATION',
         labels: {prop: 'STATION', fill: 'rgb(26,115,232)', offset: [25, 0] },
         base: {label: 'NJT - Train Stn', size: 'xs'},
@@ -145,26 +145,26 @@ export class MapViewComponent implements OnInit {
       }),
       new Lyr('VectorLayer', {group: 'Transit', className: 'Light Rail Stops', zIndex: 6, visible: true, maxResolution: 9.554628535634155}, {
         url: 'assets/data/transit_nlr.geojson'
-      }).setStyle('basic', 'Point', {
+      }).addStyle('basic', 'Point', {
         keyProp: 'STATION',
         labels: {prop: 'STATION', fill: 'rgb(26,115,232)', offset: [15, 0]},
         base: {label: 'Light Rail', size: 'xs', src: 'assets/img/icons/Logo_NLR.png'}
       }),
       new Lyr('VectorLayer', {group: 'Transit', className: 'Frequent Bus Stops', zIndex: 5, visible: false}, {
         url: this.arcRESTUrl('Newark_Bus_Stops_by_Service', ['StopID_NJT','StopID_GTFS','StopID_Location','Weekday_Lines','Weekend_Lines'], {query: 'Weekday_Headway_Minutes <= 10'})
-      }).setStyle('basic', 'Point', {
+      }).addStyle('basic', 'Point', {
         keyProp: 'StopID_Location',
         base: {label: 'Bus Stop: < 10min Avg. Wait', size: 'sm', src: 'assets/img/icons/bus_highfrequency.png'}
       }),
       new Lyr('VectorLayer', {group: 'Transit', className: 'Bus Stops', zIndex: 4, visible: false, maxResolution: 9 }, {
         url: this.arcRESTUrl('Newark_Bus_Stops_by_Service', ['StopID_NJT','StopID_GTFS','StopID_Location','Weekday_Lines','Weekend_Lines'], {query: 'Weekday_Headway_Minutes > 10'})
-      }).setStyle('basic', 'Point', {
+      }).addStyle('basic', 'Point', {
         keyProp: 'StopID_Location',
         base: {label: 'Bus Stop: > 10min Avg. Wait', size: 'xs', src: 'assets/img/icons/bus_lowfrequency.png'}
       }),
       new Lyr('VectorLayer', {group: 'Parcels & Zoning', className: 'Zoning_Districts', zIndex: 3, visible: true, minResolution: 1}, {
         url: this.arcRESTUrl('Newark_Zoning_Districts', ['ZONING','RDV_PLAN'])
-      }).setStyle('ramp-special', 'Polygon', {
+      }).addStyle('ramp-special', 'Polygon', {
         keyProp: 'ZONING',
         base: {label:'Not Available', fill: 'rgb(0,0,0)'},
         classes: {
@@ -196,7 +196,7 @@ export class MapViewComponent implements OnInit {
         url: 'https://vectortileservices1.arcgis.com/WAUuvHqqP3le2PMh/arcgis/rest/services/Newark_Parcels_with_Ownership/VectorTileServer/tile/{z}/{y}/{x}.pbf',
         attr: ['<a href="https://njgin.nj.gov/">NJ GIN</a>', 'City of Newark Office of Planning & Zoning'],
         desc: 'City of Newark Parcel boundaries, current as of the July 2021 release from the Tax Assessors\' office. Incorporates information from State MODIV tax data'
-      }).setStyle('ramp-special','Polygon', {
+      }).addStyle('ramp-special','Polygon', {
         keyProp: 'ZONING',
         base: {label:'Not Available', fill: 'rgb(0,0,0)'},
         classes:{
@@ -227,14 +227,14 @@ export class MapViewComponent implements OnInit {
       new Lyr('VectorLayer', {group: 'Other Layers', className: 'Historic_Districts', zIndex: 4, visible: false}, {
         url: this.arcRESTUrl('Newark_Historic_Assets',['ABR_NAME'],{resNum: 1, query: "STATUS='LISTED'"}),
         attr: ['<a href="https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-historic-districts">NewGIN: Newark Historic Districts</a>'],
-      }).setStyle('basic','Polygon', {
+      }).addStyle('basic','Polygon', {
         keyProp: 'ABR_NAME',
         base: {fill: 'rgb(128,147,241)', stroke: 'rgb(128,147,241)', strokeType: 'dashed', label: 'Historic District'},
         labels: {prop: 'ABR_NAME', size: 'lg', fill: 'rgb(255,255,255)', stroke: 'rgb(128,147,241)'}
       }),
       new Lyr('VectorLayer', {group: 'Other Layers', className: 'Historic_Landmarks', zIndex: 5}, {
         url: this.arcRESTUrl('Newark_Historic_Assets',['bldgdesc'])
-      }).setStyle('basic', 'Point', {
+      }).addStyle('basic', 'Point', {
         keyProp: 'bldgdesc',
         base: {fill: 'rgb(128,147,241)', label: 'Historic Landmark'},
         labels: {prop: 'bldgdesc', fill: 'rgb(128,147,241)', resolution: {min: undefined, max: 2.5}}
@@ -242,14 +242,14 @@ export class MapViewComponent implements OnInit {
       new Lyr('VectorLayer', {group: 'Other Layers', className: 'Redevelopment_Plans', zIndex: 4}, {
         url: this.arcRESTUrl('Newark_Redevelopment_Plan_Areas',['ShortName','Name']),
         attr: ['<a href="https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-redevelopment-plan-areas">NewGIN: Newark Redevelopment Plan Areas</a>']
-      }).setStyle('basic', 'Polygon', {
+      }).addStyle('basic', 'Polygon', {
         keyProp: 'ShortName',
         base: {fill: 'rgb(254,95,05)', label: 'Redevelopment Plan Area', stroke: 'rgb(254,95,0)', strokeType: 'dashed'},
         labels: {prop: 'ShortName', fill: 'rgb(255,255,255)', stroke: 'rgb(254,95,0)'}
       }),
       new Lyr('VectorLayer', {group: 'Other Layers', className: 'Designated Truck Routes', zIndex: 4}, {
         url: this.arcRESTUrl('Newark_Designated_Truck_Routes',['PRIME_NAME','TruckRteDesig'])
-      }).setStyle('ramp-special','Line', {
+      }).addStyle('ramp-special','Line', {
         keyProp: 'TruckRteDesig',
         base: {stroke: 'rgb(150,150,150)', strokeType: 'solid', label: 'Other'},
         classes:{
@@ -263,7 +263,7 @@ export class MapViewComponent implements OnInit {
       new Lyr('VectorLayer', {group: 'Economic Development', className: 'Opportunity Zones', zIndex: 4}, {
         url: this.arcRESTUrl('Newark_Economic_Development',['NAMELSAD'],{resNum: 1}),
         attr: ['<a href="https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-opportunity-zones">NewGIN: Newark Opportunity Zones</a>']
-       }).setStyle('basic','Polygon', {
+       }).addStyle('basic','Polygon', {
         keyProp: 'NAMELSAD',
         base: {fill: 'rgb(106,88,55)', label: 'Opportunity Zone', stroke: 'rgb(106,88,55)', strokeType: 'solid'},
         labels: {prop: 'NAMELSAD'}
@@ -271,7 +271,7 @@ export class MapViewComponent implements OnInit {
       new Lyr('VectorLayer', {group: 'Economic Development', className: 'Urban Enterprise Zone', zIndex: 4}, {
         url: this.arcRESTUrl('Newark_Economic_Development',['UEZ_NAME'],{resNum: 2}),
         attr: ['<a href="https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-urban-enterprise-zone">NewGIN: Newark Urban Enterprise Zone</a>']
-      }).setStyle('basic', 'Polygon', {
+      }).addStyle('basic', 'Polygon', {
         keyProp: 'NAMELSAD',
         base: {label: 'Urban Enterprise Zone', fill: 'rgb(226,157,227)', stroke: 'rgb(226,157,227)', strokeType: 'solid'}
       }),
@@ -279,7 +279,7 @@ export class MapViewComponent implements OnInit {
         url: this.arcRESTUrl('Census_Geographies',['NAMELSAD'],{resNum: 2}),
         attr: ['<a href="https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/8">US Census TIGER: Census Tracts</a>'],
         desc: 'City of Newark Census Tracts, as delineated by the 2020 release of US Census TIGER Boundaries'
-      }).setStyle('boundary','Polygon', {
+      }).addStyle('boundary','Polygon', {
         keyProp: 'NAMELSAD',
         base: {label: 'Census Tract', fill: 'transparent', stroke: 'rgb(0,0,0)', strokeType: 'solid'},
         labels: {prop: 'NAMELSAD', fill: 'rgb(255,255,255)', stroke: 'rgb(0,0,0)'}
@@ -288,7 +288,7 @@ export class MapViewComponent implements OnInit {
         url: this.arcRESTUrl('Census_Geographies',['ZCTA5CE10'],{resNum: 3}),
         attr: ['<a href="https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/2">US Census TIGER: 2010 Zip Code Tabulation Areas</a>'],
         desc: 'City of Newark Zipcodes Tabulation Areas, as delineated by the 2010 release of US Census TIGER Boundaries.'
-      }).setStyle('boundary', 'Polygon', {
+      }).addStyle('boundary', 'Polygon', {
         keyProp: 'ZCTA5CE10',
         base: {label: 'Zipcode Boundary', fill: 'transparent', stroke: 'rgb(0,0,0)', strokeType: 'solid'},
         labels: {prop: 'ZCTA5CE10', fill: 'rgb(255,255,255)', stroke: 'rgb(0,0,0)'}
@@ -297,7 +297,7 @@ export class MapViewComponent implements OnInit {
         url: this.arcRESTUrl('Newark_Geographies',['name']),
         attr: ['<a href="https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-neighborhoods">NewGIN: Newark Neighborhoods</a>'],
         desc: 'City of Newark Neighborhods, as used by Newark Planning & Zoning Office and codified in the 2015 Zoning and Land Use Regulations.'
-      }).setStyle('boundary','Polygon', {
+      }).addStyle('boundary','Polygon', {
         keyProp: 'name',
         base: {label: 'Neighborhood', fill: 'transparent', stroke: 'rgb(0,0,0)', strokeType: 'solid'},
         labels: {prop: 'name', fill: 'rgb(255,255,255)', stroke: 'rgb(0,0,0)'}
@@ -306,7 +306,7 @@ export class MapViewComponent implements OnInit {
         url: this.arcRESTUrl('Newark_Geographies',['WARD_NAME'],{resNum: 1}),
         attr: ['<a href="https://data-newgin.opendata.arcgis.com/datasets/NewGIN::newark-wards">NewGIN: Newark Wards</a>'],
         desc: 'City of Newark Ward Boundaries as delineated in 2012, the last census redistricting. Boundaries drawn to reflect similar similar population totals amongst the five wards.'
-      }).setStyle('boundary','Polygon', {
+      }).addStyle('boundary','Polygon', {
         keyProp: 'WARD_NAME',
         base: {label: 'Ward', fill: 'transparent', stroke: 'rgb(0,0,0)', strokeType: 'dashed'},
         labels: {prop: 'WARD_NAME', fill: 'rgb(255,255,255)', stroke: 'rgb(0,0,0)'}

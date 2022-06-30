@@ -4,13 +4,9 @@ import Point from 'ol/geom/Point';
 import VectorLayer from 'ol/layer/Vector';
 import { toLonLat } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
-import { Circle, Icon, Text } from 'ol/style';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import Style from 'ol/style/Style';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { MapToast } from '../classes/map-toast.class';
 import { formatDMS } from '../utils/fns-google';
-import { generatePointSVG } from '../utils/fns-utility';
 
 export class Geolocate extends Control {
   readonly name = 'geolocation';

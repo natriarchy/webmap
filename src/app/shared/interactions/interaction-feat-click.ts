@@ -43,14 +43,14 @@ export class FeatClickModal extends Select {
     this.detroyModal();
     const actionBtn = this.newEl('button', {
       type: 'button',
-      class: 'webmap-btn',
+      class: 'map-btn',
       title: 'Zoom to Feature',
       innerHTML: '<span class="bi bi-zoom-in"></span>',
       onclick: (e: MouseEvent) => this.featAction('zoom')
     });
     const closeBtn = this.newEl('button', {
       type: 'button',
-      class: 'modal-close webmap-btn',
+      class: 'modal-close map-btn --icon',
       innerHTML: '<span class="bi bi-x"></span>',
       onclick: (e: any) => this.detroyModal()
     });

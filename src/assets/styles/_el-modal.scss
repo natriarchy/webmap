@@ -75,14 +75,15 @@
     align-self: stretch;
     flex-direction: column;
     margin: 0.5rem 0;
-    .webmap-btn {
-        font-size: 1.2rem;
-    }
 }
 
 .modal-actions {
+    display: flex;
+    justify-content: center;
     width: 100%;
     font-size: 0.75rem;
-    border-top: 0.1rem solid lightgray;
-    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+    background: rgb(233, 233, 237);
+    border-radius: 0.5em;
+    overflow: hidden;
 }

@@ -8,37 +8,38 @@
     }
 }
 
-.tippy-dropdown-div {
+.tippy-dropdown {
     display: flex;
     flex-direction: column;
-    button {
-        text-align: center;
-        height: 2.5em;
-        padding: 0.25em;
-        font-size: 1em;
-        text-align: left;
-        background: none;
-        border: none;
-        cursor: pointer;
-        margin: 0;
+}
+
+.tippy-dropdown>button {
+    text-align: center;
+    height: 2.5em;
+    padding: 0.25em;
+    font-size: 1em;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin: 0;
+    &::before {
+        content: "\25CC";
+        font-size: 1.25em;
+        margin-right: 0.15em;
+    }
+    &:hover {
         &::before {
-            content: "\25CC";
-            font-size: 1.25em;
-            margin-right: 0.15em;
+            content: "\25CB";
         }
-        &:hover {
-            &::before {
-                content: "\25CB";
-            }
+    }
+    &[data-active~='true'] {
+        &::before {
+            content: "\25CF";
         }
-        &[data-active~='true'] {
-            &::before {
-                content: "\25CF";
-            }
-        }
-        &:active {
-            color: grey;
-            -webkit-text-fill-color: grey;
-        }
+    }
+    &:active {
+        color: grey;
+        -webkit-text-fill-color: grey;
     }
 }

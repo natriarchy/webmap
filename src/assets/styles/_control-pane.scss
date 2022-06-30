@@ -71,12 +71,12 @@
             height: 0;
             cursor: pointer;
         }
-        label.webmap-btn {
+        label.map-btn {
             font-size: 1.75rem;
             padding: 0.33em;
             border-color: white;
         }
-        input:checked~label.webmap-btn {
+        input:checked~label.map-btn {
             background: rgb(240 240 250) !important;
             transition: background, color 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
             color: black !important;

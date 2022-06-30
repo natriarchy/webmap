@@ -21,7 +21,7 @@ export class MapModal <T extends 'feature' | 'dialog'> {
 
     const actionBtn = document.createElement('button');
     actionBtn.setAttribute('type', 'button');
-    actionBtn.className = 'webmap-btn';
+    actionBtn.className = 'map-btn';
     actionBtn.innerHTML = opts.type === 'dialog' ? 'Submit' : 'Zoom to Feature',
     actionBtn.onclick = (e: MouseEvent) => {
       if (opts.type === 'dialog') {
@@ -41,7 +41,7 @@ export class MapModal <T extends 'feature' | 'dialog'> {
     };
     const closeBtn = this.newEl('button', {
       type: 'button',
-      class: 'modal-close webmap-btn',
+      class: 'modal-close map-btn --icon',
       innerHTML: '<span class="bi bi-x"></span>',
       onclick: destroyModal
     });
@@ -57,8 +57,10 @@ export class MapModal <T extends 'feature' | 'dialog'> {
       <div class="modal-body">
         ${opts.description ? '<p>'+opts.description+'</p>' : ''}
       </div>
+      <div class="modal-actions"></div>
     `;
-    modalContainer.appendChild(actionBtn);
+    modalContainer.querySelector('.modal-header')?.append(closeBtn);
+    modalContainer.querySelector('.modal-actions')?.append(actionBtn);
 
     this.modalElement = document.createElement('section');
     this.modalElement.id = 'modal-element';
@@ -72,7 +74,6 @@ export class MapModal <T extends 'feature' | 'dialog'> {
       };
     };
     (opts.type === 'dialog' ? document.body : document.querySelector('div.ol-overlaycontainer-stopevent'))!.append(this.modalElement);
-    modalContainer.querySelector('.modal-header')?.append(closeBtn);
     if (opts.content) {
       this.modalElement.querySelector('div.modal-body')!.appendChild(this.makeContent(opts.content)!);
     }

@@ -126,7 +126,7 @@ export class LayersMgmt extends Control {
         },
         children: ['filter','sort'].map(
           (v,i,a) => this.newFormGrp(i === 0 ? 'select' : 'radio', i === 1, ctrlVals[v as 'filter'|'sort'], {
-            label: `<span class="webmap-btn no-interaction bi bi-${this.icons[v as 'filter'|'sort']}"></span>`,
+            label: `<span class="map-btn --no-int bi bi-${this.icons[v as 'filter'|'sort']}"></span>`,
             group: `layers-${v}`,
             addClass: `layers-${v} ${i === 0 ? 'full-width' : 'hide-input'}`
           })
@@ -169,7 +169,7 @@ export class LayersMgmt extends Control {
     });
 
     const _infoBtn = this.newEl('button', {
-      className: 'layer-info webmap-btn',
+      className: 'layer-info map-btn --icon',
       type: 'button',
       title: lyr.getClassName() + ' More Info',
       innerHTML: `<span class="bi bi-${this.icons.info}"></span>`,

@@ -37,7 +37,7 @@ export class BasemapToggle extends Control {
     this.element.appendChild(this._ctrlBtn);
 
     this._dropdownEl = document.createElement('div');
-    this._dropdownEl.className = 'tippy-dropdown-div';
+    this._dropdownEl.className = 'tippy-dropdown';
     const init = this.basemaps.find(s => s.active)?.name || this.basemaps[0].name;
     this._dropdownEl.append(...this.basemaps.map(
       (el,i,a) => this.makeListBtn(el.name, el.active || el.name === init)
@@ -55,10 +55,10 @@ export class BasemapToggle extends Control {
         theme: "map-light",
         trigger: "click focus",
         onShow(e) {
-          e.reference.classList.add('dropdown-open','no-interaction');
+          e.reference.classList.add('--dropdown','--no-int');
         },
         onHide(e) {
-          e.reference.classList.remove('dropdown-open','no-interaction');
+          e.reference.classList.remove('--dropdown','--no-int');
         }
       }
     );

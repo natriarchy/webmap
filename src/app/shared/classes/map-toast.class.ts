@@ -43,14 +43,14 @@ export class MapToast {
     this.element.innerHTML = `
       <div class="toast-container">
         <div class="toast-header">
-          <span class="toast-icon webmap-btn no-interaction">
+          <span class="toast-icon map-btn --no-int">
             <span class="bi bi-${this.icons[opts.tone]}"></span>
           </span>
           <span class="toast-title">
             ${opts.header}
             ${opts.value ? valueInput?.outerHTML + '<label for="toastValueInput">' + opts.value + '</label>' : ''}
           </span>
-          <button class="toast-close webmap-btn" onclick="document.getElementById('toast-element').classList.add('hidden');">
+          <button class="map-btn --icon" onclick="document.getElementById('toast-element').classList.add('hidden');">
             <span class="bi bi-${this.icons['close']}"></span>
           </button>
         </div>
@@ -62,35 +62,31 @@ export class MapToast {
 
     return this;
   }
-  public destroy(timerType: 'immediate' | 'short' | 'long' | 'indeterminate' = 'immediate'): void {
-    const timerEl = document.getElementById('toast-timer')!;
-    const animationopts: {[key: string]: KeyframeAnimationOptions} = {
-      'immediate': {duration: 0},
-      'short': {duration: 3000},
-      'long': {duration: 7000},
-      'indeterminate': {duration: 1750, iterations: Infinity}
+  public destroy(type: 'immediate' | 'short' | 'long' | 'indeterminate' = 'immediate'): void {
+    const el = document.getElementById('toast-timer')!;
+    const timerInd: Array<Keyframe> = [[0.0, 0, 0], [0.3, 0, 0.4], [0.5, 50, 0.5], [1.0, 100, 0]].map(
+      e => ({offset: e[0], width: '100%', transform: `translateX(${e[1]}%) scaleX(${e[2]})`})
+    );
+    const animateOpts: {[key: string]: [Array<Keyframe>, {duration: number, iterations?: number}]} = {
+      immediate: [[], {duration: 0}],
+      short: [[{width: '100%'}, {width: '0%'}], {duration: 3000}],
+      long: [[{width: '100%'}, {width: '0%'}], {duration: 7000}],
+      indeterminate: [timerInd, {duration: 1750, iterations: Infinity}]
     };
-    const indeterminateTimer: Array<Keyframe> = [
-      {offset: 0.0, width: '100%', transform: 'translateX(0) scaleX(0)'},
-      {offset: 0.3, width: '100%', transform: 'translateX(0) scaleX(0.4)'},
-      {offset: 0.5, width: '100%', transform: 'translateX(50%) scaleX(0.5)'},
-      {offset: 1.0, width: '100%', transform: 'translateX(100%) scaleX(0)'}
-    ];
-    const basicTimer: Array<Keyframe> = [{width: '100%'},{width: '0%'}];
 
-    if (timerType !== 'immediate') {
-      timerEl.style.display = 'block';
-      timerEl.firstElementChild!.animate(
-        timerType === 'indeterminate' ? indeterminateTimer : basicTimer,
-        animationopts[timerType]
+    if (type !== 'immediate') {
+      el.style.display = 'block';
+      el.firstElementChild!.animate(...animateOpts[type]);
+    };
+
+    if (type !== 'indeterminate') {
+      const animation = this.element.animate(
+        [{opacity: 1}, {opacity: 0}],
+        {delay: animateOpts[type][1].duration * 0.9, duration: animateOpts[type][1].duration * 0.1}
       );
-    }
-    if (timerType !== 'indeterminate') {
-      const timing = animationopts[timerType].duration as number;
-      const animation = this.element.animate([{opacity: 1},{opacity: 0}],{delay: timing * 0.9, duration: timing * 0.1});
       animation.onfinish = (e: any) => {
         this.element.classList.add('hidden');
-        timerEl.style.display = 'none';
+        el.style.display = 'none';
       };
     }
   }
