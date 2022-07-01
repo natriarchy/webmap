@@ -5,7 +5,6 @@ import VectorLayer from 'ol/layer/Vector';
 import { toLonLat } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
-import { MapToast } from '../classes/map-toast.class';
 import { formatDMS } from '../utils/fns-google';
 
 export class Geolocate extends Control {
@@ -14,7 +13,6 @@ export class Geolocate extends Control {
     ctrl: 'geo-alt-fill'
   };
   _ctrlBtn: HTMLElement;
-  _toast: MapToast;
   _gl: Geolocation;
   positionFt: Feature<any>;
   accuracyFt: Feature<any>;
@@ -25,8 +23,6 @@ export class Geolocate extends Control {
     this.set('name', this.name);
 
     this._gl = new Geolocation({ trackingOptions: { enableHighAccuracy: true } });
-
-    this._toast = new MapToast();
 
     this.positionFt = new Feature();
     this.positionFt.setId('Your Location');
@@ -69,14 +65,15 @@ export class Geolocate extends Control {
       this._gl.setTracking(true);
       this._gl.setProjection(this.getMap()!.getView().getProjection());
       this.active = true;
-      this._toast.make({tone: 'info', header: 'Finding Your Location', timer: 'indeterminate'});
+      const _toastCtrl = this.getMap()!.get('toast-ctrl');
+      _toastCtrl.launch({tone: 'info', header: 'Finding Your Location', timer: 'indeterminate'});
 
       this._gl.once('change:position', e => {
         const posPt = this._gl.getPosition();
         if (posPt) {
           this.positionFt.setProperties({ geometry: new Point(posPt), location: posPt });
           this.getMap()!.getView().animate({ center: posPt, zoom: 5, duration: 500 });
-          this._toast.make({tone: 'info', header: 'Location: ', value: formatDMS(toLonLat(posPt)), timer: 'short'}).addClick('value');
+          _toastCtrl.launch({tone: 'info', header: 'Location: ', value: formatDMS(toLonLat(posPt)), timer: 'short'});
           setTimeout(() => {
             this._gl.setTracking(false);
             this.active = false;
@@ -87,7 +84,14 @@ export class Geolocate extends Control {
         const geom = this._gl.getAccuracyGeometry();
         if (geom) this.accuracyFt.setGeometry(geom);
       });
-      this._gl.once('error', () => console.warn('Geolocation Not Working!'));
+      this._gl.once('error', e => {
+        console.warn('Geolocation Not Working!');
+        console.warn(e);
+        _toastCtrl.launch({tone: 'warning', header: 'Geolocation Not Working!', timer: 'short'});
+        this.getMap()!.removeLayer(this.glLayer);
+        this._gl.setTracking(false);
+        this.active = false;
+      });
     } else {
       // this.getMap()!.removeLayer(this.glLayer);
       this._gl.setTracking(false);

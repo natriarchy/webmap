@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit } from '@angular/core';
 
 import { Map, View } from 'ol';
 import OLObj from 'ol/Object';
@@ -7,27 +7,33 @@ import { defaults, DragPan } from 'ol/interaction';
 import { fromLonLat } from 'ol/proj';
 
 // Custom Controls
-import { BasemapToggle } from '../controls/control-basemap';
-import { FullScreenCustom } from '../controls/control-fullscreen';
-import { Geolocate } from '../controls/control-geolocate';
-import { LayersMgmt } from '../controls/control-layers-mgmt';
-import { Measure } from '../controls/control-measure';
-import { ControlPaneEl } from '../controls/control-pane-el';
-import { Search } from '../controls/control-search';
-import { Settings } from '../controls/control-settings';
-import { ControlToolbarEl } from '../controls/control-toolbar-el';
-import { ZoomExtent } from '../controls/control-zoom-extent';
+import { BasemapToggle } from './controls/control-basemap';
+import { ExportMap } from './controls/control-export-map';
+import { FullScreenCustom } from './controls/control-fullscreen';
+import { Geolocate } from './controls/control-geolocate';
+import { LayersMgmt } from './controls/control-layers-mgmt';
+import { Measure } from './controls/control-measure';
+import { ModalCtrl } from './controls/control-modal';
+import { ControlPaneEl } from './controls/control-pane-el';
+import { Search } from './controls/control-search';
+import { Settings } from './controls/control-settings';
+import { ToastCtrl } from './controls/control-toast';
+import { ControlToolbarEl } from './controls/control-toolbar-el';
+import { ZoomExtent } from './controls/control-zoom-extent';
 
 // Other Custom Classes
-import { FeatureTooltip } from '../interactions/overlay-feature-tooltip';
-import { FeatClickModal } from '../interactions/interaction-feat-click';
-import { Lyr } from '../classes/map-lyr';
-import { ExportMap } from '../controls/control-export-map';
+import { FeatureTooltip } from './interactions/overlay-feature-tooltip';
+import { FeatClickModal } from './interactions/interaction-feat-click';
+import { Lyr } from './classes/map-lyr';
 
 @Component({
   selector: 'app-map-view',
-  styleUrls: ['./map-view.component.scss'],
-  templateUrl: './map-view.component.html'
+  styles: [
+    ':host {position: relative; flex: 1 1 33%; min-width: 20rem; height: 100%;}',
+    'div:active {cursor: grabbing;}',
+    '.map {width: 100%;height: 100vh;}'
+  ],
+  template: '<div class="map"></div>'
 })
 
 export class MapViewComponent implements OnInit {
@@ -54,7 +60,7 @@ export class MapViewComponent implements OnInit {
     ]
   };
 
-  constructor() {
+  constructor(private readonly host: ElementRef) {
     this.instance = new Map({
       layers: [],
       interactions: defaults({
@@ -80,10 +86,14 @@ export class MapViewComponent implements OnInit {
     this.instance.set('settings', new OLObj({'AllowSelectHover': true, 'AllowFeatureClickModal': true}));
   }
   ngOnInit(): void {
-    this.instance.setTarget('map-instance');
+    this.instance.setTarget(this.host.nativeElement.firstChild);
     this.addLayers().forEach(
       l => this.instance.addLayer(l.instance)
     );
+    this.instance.getControls().extend([
+      new ToastCtrl(this.instance.getTargetElement() as HTMLElement),
+      new ModalCtrl(this.instance.getTargetElement() as HTMLElement)
+    ]);
     this.instance.getControls().extend(new ControlToolbarEl({position: 'top-left'}).with([
         new ZoomExtent({defaultExtent: this.defaultView.extent as [number,number,number,number]}),
         new Geolocate(),
@@ -92,13 +102,13 @@ export class MapViewComponent implements OnInit {
           {
             name: 'Streets',
             url: 'https://{a-d}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-            attribution: '<span><a href="http://www.openstreetmap.org/copyright">© OpenStreetMap</a> contributors, <a href="https://carto.com/attribution">© CARTO</a></span>'
+            attr: '<span><a href="http://www.openstreetmap.org/copyright">© OpenStreetMap</a> contributors, <a href="https://carto.com/attribution">© CARTO</a></span>'
           },
           {
             name: 'Satellite',
             // Re lyrs param { y queries for sattelite hybrid, s queries for just sattelite, r queries for standard Maps }
             url: 'https://mt{1-3}.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
-            attribution: '<span>Imagery ©2020 Bluesky, Maxar Technologies, Sanborn, USDA Farm Service Agency, <a href="https://www.google.com/permissions/geoguidelines/attr-guide/">Google Streets & Satellite 2020</a></span>'
+            attr: '<span>Imagery ©2020 Bluesky, Maxar Technologies, Sanborn, USDA Farm Service Agency, <a href="https://www.google.com/permissions/geoguidelines/attr-guide/">Google Streets & Satellite 2020</a></span>'
           }
         ]}),
         new FullScreenCustom(),

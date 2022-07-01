@@ -23,6 +23,7 @@
     border: none;
     cursor: pointer;
     margin: 0;
+    white-space: nowrap;
     &::before {
         content: "\25CC";
         font-size: 1.25em;

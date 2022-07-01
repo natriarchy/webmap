@@ -8,7 +8,7 @@ $z-index-modals-feature: 250;
 $z-index-ctrl-panels: 300;
 //// 350 - Autocomplete Results
 $z-index-autocomplete: 350;
-//// 400 - Toast Messages
-$z-index-toast-msg: 400;
 //// 500 - Full Screen Modal Dialog
-$z-index-modal-dialog: 500;
+$z-index-modal-dialog: 400;
+//// 400 - Toast Messages
+$z-index-toast-msg: 500;

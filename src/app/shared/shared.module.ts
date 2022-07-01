@@ -2,25 +2,23 @@ import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import * as index from './';
+import { MapViewComponent } from './map-view.component';
 
 @NgModule({
   declarations: [
-    ...index.components
+    MapViewComponent
   ],
   exports: [
     FormsModule,
     ReactiveFormsModule,
-    ...index.components
+    MapViewComponent
   ],
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule
   ],
-  providers: [
-    ...index.services
-  ],
+  providers: [],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class SharedModule {}

@@ -10,7 +10,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 Rather than using angular features, I'm trying to use the OpenLayers package and basic javascript solutions exclusively, to make the end product more adaptable and reusable across use cases. This project is aimed at making several custom control classes to expand functionality and generate a customizable front-end.
 
 ## Main Map Component 
-#### [map-view.component](src/app/shared/components/map-view.component.ts)
+#### [map-view.component](src/app/shared/map-view.component.ts)
 
 ## Custom Controls:
 - BasemapToggle
@@ -19,6 +19,8 @@ Rather than using angular features, I'm trying to use the OpenLayers package and
   - [controls/control-pane-el](src/app/shared/controls/control-pane-el.ts)
 - CtrlToolbarEl
   - [controls/control-toolbar-el](src/app/shared/controls/control-toolbar-el.ts)
+- ExportMap
+  - [controls/control-export-map](src/app/shared/controls/control-export-map.ts)
 - Fullscreen
   - [controls/control-fullscreen](src/app/shared/controls/control-fullscreen.ts)
 - Geolocate
@@ -29,10 +31,14 @@ Rather than using angular features, I'm trying to use the OpenLayers package and
 - Measure
   - [controls/control-measure](src/app/shared/controls/control-measure.ts)
   - Includes radius, distance and area measurement.
+- ModalCtrl
+  - [controls/control-modal](src/app/shared/controls/control-modal.ts)
 - Search (Early in development)
   - [controls/control-search](src/app/shared/controls/control-search.ts)
 - Settings (Early in development)
   - [controls/control-settings](src/app/shared/controls/control-settings.ts)
+- ToastCtrl
+  - [controls/control-toast](src/app/shared/controls/control-toast.ts)
 - ZoomExtentGroup
   - [controls/control-zoom-extent](src/app/shared/controls/control-zoom-extent.ts)
 
@@ -41,7 +47,7 @@ Rather than using angular features, I'm trying to use the OpenLayers package and
   - This is less the case now, as I'm trying to make each control as self-sufficient as possible
 - Layer Interfaces:
   - This is in flux, working to have simplified class objects to make the layers. That way there's more context for parameters.
-  - I'm working to base it on a single [Lyr](src/app/shared/classes/map-lyr.ts) class, with the setStyle method (which uses the [LyrStylr](src/app/shared/classes/lyr-style.ts) class to generate a style)
+  - I'm working to base it on a single [Lyr](src/app/shared/classes/map-lyr.ts) class, with the addStyle method
 ```typescript
 new Lyr('VectorLayer',
   {group: 'Transit', className: 'Rail Stations', zIndex: 6, visible: true}, 

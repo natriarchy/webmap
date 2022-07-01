@@ -1,4 +1,4 @@
-#toast-element {
+.toast-container {
     position: fixed;
     display: flex;
     justify-content: center;
@@ -6,18 +6,13 @@
     bottom: 2.55rem;
     left: 0.55rem;
     right: 0.55rem;
-    &.hidden {
+    pointer-events: none !important;
+    &.--hidden {
         display: none;
-    }
-    &.warning .toast-container {
-        background: salmon !important;
-    }
-    &.info .toast-container {
-        background: rgb(135, 206, 250) !important;
     }
 }
 
-.toast-container {
+.toast {
     border-radius: 0.4rem;
     padding: 0.5rem;
     display: flex;
@@ -34,24 +29,33 @@
     @media only screen and (max-width: 576px) {
         width: 100%;
     }
+    &.--warning {
+        background: salmon !important;
+    }
+    &.--info {
+        background: rgb(135, 206, 250) !important;
+    }
 }
 
 .toast-header {
     display: flex;
     align-items: center;
     font-weight: 600;
-    .toast-icon {
-        color: black;
-        -webkit-text-fill-color: black;
+    color: black;
+    -webkit-text-fill-color: black;
+    .toast-title {
+        font-size: 1.1rem;
+        padding: 0 1rem;
     }
     .map-btn {
         border: none;
         padding: 0.3rem;
     }
-    .toast-title {
-        font-size: 1.1rem;
-        padding: 0 1rem;
-        border-right: 0.1rem solid;
+    hr {
+        height: 1.5rem;
+        border: none;
+        border-left: 0.1rem solid black;
+        margin: 0 0.5rem;
     }
 }
 
@@ -65,12 +69,12 @@
     justify-content: center;
     background: rgb(198, 204, 210);
     margin-top: 0.25rem;
-    .webmap-btn {
+    .map-btn {
         font-size: 1.2rem;
     }
 }
 
-#toast-timer {
+.toast-timer {
     width: 100%;
     height: 0.5rem;
     background: white;

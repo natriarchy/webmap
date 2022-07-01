@@ -1,7 +1,5 @@
 import OLObj from 'ol/Object';
 import Control from 'ol/control/Control';
-import { MapModal } from '../classes/map-modal.class';
-import { MapToast } from '../classes/map-toast.class';
 import { Setting, SettingsOptions } from '../models';
 
 export class Settings extends Control {
@@ -76,11 +74,12 @@ export class Settings extends Control {
     }
   }
   makeToast(e: any) {
-    const _toast = new MapToast();
-    _toast.make({tone: 'info', header: 'This is a toast message!', timer: 'short'});
+    const _toast = this.getMap()!.get('toast-ctrl');
+    _toast.launch({tone: 'info', header: 'This is a toast message!'});
   }
   makeModal(e: any) {
-    new MapModal({type: 'feature', header: 'Example Feature Modal', subheader: 'Layer Name', description: 'Descriptions of features, with data etc.'});
+    const _modalCtrl = this.getMap()!.get('modal-ctrl');
+    _modalCtrl.launch({type: 'feature', header: 'Example Feature Modal', subheader: 'Layer Name', description: 'Descriptions of features, with data etc.'});
   }
   makeSetting(id: string, opts: Setting<'button'> | Setting<'checkbox'> | Setting<'radio'> | Setting<'select'>): HTMLElement {
     const fixStr = (str: string | undefined) => str ? str.replace(/(_|\s|\&)/gi, '-').toLowerCase() : undefined;

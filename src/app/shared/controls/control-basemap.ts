@@ -4,12 +4,11 @@ import TileLayer from 'ol/layer/Tile';
 import XYZ from 'ol/source/XYZ';
 import tippy from 'tippy.js';
 import { Setting } from '../models';
-import { MapModal } from '../classes/map-modal.class';
 
 interface BasemapInfo {
   name: string;
   url: string;
-  attribution: string;
+  attr: string;
   active?: boolean;
 }
 
@@ -71,12 +70,33 @@ export class BasemapToggle extends Control {
           label: 'Add Basemap Layer',
           actions: {label: this._ctrlBtn.innerHTML},
           fnOpts: {type: 'click', fn: (e) => {
-            new MapModal({type: 'dialog', header: 'Add Basemap Layer', subheader: 'Fill Out the Form', content: [
-              { id: 'basemap-name', type: 'text', label: 'Name', options: {value: ''} },
-              { id: 'basemap-url', type: 'text', label: 'URL', options: {value: 'https://'} },
-              { id: 'basemap-attr', type: 'text', label: 'Attributions', options: {value: ''} },
-              { id: 'basemap-active', type: 'checkbox', label: 'Make Active Basemap?', options: {value: true} }
-            ]})
+            const _modalCtrl = this.getMap()!.get('modal-ctrl');
+            _modalCtrl.launch({
+              type: 'dialog',
+              header: 'Add Basemap Layer',
+              subheader: 'Fill Out the Form',
+              content: [
+                { id: 'basemap-name', type: 'text', label: 'Name', options: {value: ''} },
+                { id: 'basemap-url', type: 'text', label: 'URL', options: {value: 'https://'} },
+                { id: 'basemap-attr', type: 'text', label: 'Attributions', options: {value: ''} },
+                { id: 'basemap-active', type: 'checkbox', label: 'Make Active Basemap?', options: {value: true} }
+              ],
+              actions: [{
+                label: 'Submit <span class="bi bi-submit"></span>',
+                title: 'Submit',
+                action: (e: MouseEvent, el: HTMLElement) => {
+                  const form = el.querySelector('form') as HTMLFormElement;
+                  const getEl = (id: string) => form.elements.namedItem(id) ? form.elements.namedItem(id) as HTMLInputElement : undefined;
+                  const results: [string?,string?,string?,boolean?] = [
+                    getEl('basemap-name')?.value,
+                    getEl('basemap-url')?.value,
+                    getEl('basemap-attr')?.value,
+                    getEl('basemap-active')?.checked
+                  ];
+                  if (!results.includes(undefined)) this.addBasemap({name: results[0]!, url: results[1]!, attr: results[2]!, active: results[3] });
+                }
+              }]
+            });
           }}
         };
         settings.set(this.name, settingObj);
@@ -99,7 +119,7 @@ export class BasemapToggle extends Control {
     this._tippy.hide();
     if (basemapLyr && basemapSrc) {
       (basemapLyr as TileLayer<XYZ>).getSource().setUrl(basemapSrc.url);
-      (basemapLyr as TileLayer<XYZ>).getSource().setAttributions(basemapSrc.attribution);
+      (basemapLyr as TileLayer<XYZ>).getSource().setAttributions(basemapSrc.attr);
       console.info('Basemap layer set to '+ basemap);
       document.querySelectorAll('.basemap-option').forEach(
         b => b.setAttribute('data-active', String(b.getAttribute('data-name') === basemap))

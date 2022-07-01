@@ -9,7 +9,6 @@ import VectorSource from 'ol/source/Vector';
 import { getArea, getLength } from 'ol/sphere';
 import { Circle as CircleStyle, Fill, RegularShape, Stroke, Style, Text } from 'ol/style';
 import tippy from 'tippy.js';
-import { MapToast } from '../classes/map-toast.class';
 
 type MeasureEls = 'base'|'centroid'|'label'|'segment'|'tip';
 
@@ -18,13 +17,13 @@ export class Measure extends Control {
   readonly icons = {
     ctrl: 'rulers'
   };
-  _toast: MapToast;
   _tippy: any;
   dropdownEl: HTMLElement;
   drawInteraction: Draw | undefined;
   drawType: 'Distance' | 'Area' | 'Radius' = 'Distance';
   measureLyr = new VectorLayer({ className: 'measure-layer', source: new VectorSource(), style: this.styleFn.bind(this) });
   styles: Record<MeasureEls, Style>;
+  _toastEl: HTMLElement | undefined;
   tipPoint: any;
   segmentStyles: Array<Style>;
   constructor(opts?: { targetId?: string }) {
@@ -76,7 +75,6 @@ export class Measure extends Control {
     this.element.className = 'ol-unselectable ol-custom-control';
     this.element.appendChild(_ctrlBtn);
 
-    this._toast = new MapToast();
     this.dropdownEl = this.makeDropdown();
     this._tippy = tippy(_ctrlBtn, {
       content: this.dropdownEl,
@@ -134,9 +132,10 @@ export class Measure extends Control {
     let tip = idleTip;
 
     // Generate Toast Element and give a click listener to exit measure
-    this._toast
-      .make({tone: 'action', header: `Click on Map to Measure ${drawType}`, body: 'Click Here or Press ESC Key to Exit'})
-      .on('click', this.endMeasure.bind(this));
+    this._toastEl = this.getMap()!
+      .get('toast-ctrl')
+      .launch({tone: 'action', header: `Click on Map to Measure ${drawType}`, body: 'Click Here or Press ESC Key to Exit'});
+    this._toastEl!.addEventListener('click', this.endMeasure.bind(this), {once: true});
 
     const map = this.getMap()!;
     map.getAllLayers().find(l => l.getClassName() === 'measure-layer')
@@ -166,7 +165,9 @@ export class Measure extends Control {
     if (this._tippy) this._tippy.hide();
     this.dropdownEl.querySelectorAll('button').forEach(c => c.setAttribute('data-active','false'));
     document.removeEventListener('keyup', this.handleEscKey);
-    this._toast.destroy();
+    if (this._toastEl) this.getMap()!
+      .get('toast-ctrl')
+      .destroy();
 
     const map = this.getMap()!;
     map.removeInteraction(this.drawInteraction!);
