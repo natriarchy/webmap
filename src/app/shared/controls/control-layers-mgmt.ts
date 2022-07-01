@@ -23,11 +23,13 @@ export class LayersMgmt extends Control {
 
     if (opts.type === 'standalone') {
       const _ctrlBtn = document.createElement('button');
-      _ctrlBtn.title = 'Toggle Layers Manager';
-      _ctrlBtn.setAttribute('type', 'button');
+      Object.assign(_ctrlBtn, {
+        type: 'button',
+        title: 'Toggle Layers Manager',
+        innerHTML: `<span class="bi bi-${this.icon}"></span>`,
+        onclick: this.handleToggle.bind(this)
+      });
       _ctrlBtn.setAttribute('data-active', 'false');
-      _ctrlBtn.innerHTML = `<span class="bi bi-${this.icon}"></span>`;
-      _ctrlBtn.onclick = this.handleToggle.bind(this);
       this.element.appendChild(_ctrlBtn);
 
       this._layersEl = document.createElement('div');
@@ -52,6 +54,7 @@ export class LayersMgmt extends Control {
     });
     observer.observe(document, { childList: true, subtree: true });
   }
+
   handleToggle(e: MouseEvent): void {
     const handleClickOutside = (function (e: any) {
       const lyrsDiv: HTMLElement = document.querySelector('.layers-mgmt')!;
@@ -83,92 +86,116 @@ export class LayersMgmt extends Control {
     this._layersEl.animate(
       [{opacity: 0, 'overflow-y': 'hidden'}, {opacity: 1, 'overflow-y': 'auto'}],
       {duration: 250, direction: state ? 'normal' : 'reverse'}
-    ).onfinish = e => {
-      this._layersEl.style.display = state ? 'flex' : 'none';
-    };
+    ).onfinish = e => this._layersEl.style.display = state ? 'flex' : 'none';
   }
+
   generateLayers(): void {
-    const _layersList = document.createElement('div');
-    _layersList.className = 'layers-list';
-    this._layersEl.appendChild(_layersList);
+    const _lyrsList = document.createElement('div');
+    _lyrsList.className = 'layers-list';
+    this._layersEl.appendChild(_lyrsList);
+
     this.getMap()!.getAllLayers()
       .filter(l => !!l.get('group'))
       .forEach(l => {
         const layerEl = this.makeLayerEl(l);
         this._layersGrps.add(l.get('group'));
-        _layersList.appendChild(layerEl);
+        _lyrsList.appendChild(layerEl);
       }
     );
+
     if (this._layersGrps.size > 0) {
       const ctrlVals = {
-        'filter': ['--Show All Layers--', '--Visible Layers--', ...Array.from(this._layersGrps)].map(
-          (v,i) => ({label: v, value: i < 2 ? {0: '', 1: 'true'}[i] : v})
-        ),
+        'filter': [
+            '--Show All Layers--',
+            '--Visible Layers--',
+            ...Array.from(this._layersGrps)
+          ].map(
+            (v,i) => ({label: v, value: i < 2 ? {0: '', 1: 'true'}[i] : v})
+          ),
         'sort': ['name','group','visible'].map(i => ({label: i}))
       };
-      const layersCtrl = this.newEl('form', {
-        className: 'layers-ctrl',
-        onchange: (e: InputEvent) => {
-          const targetEl = e.target as HTMLElement;
-          const action = String(targetEl.getAttribute('name') ?? targetEl.id).split('-')[1];
-          const value = action === 'sort'
-            ? ((e.currentTarget as HTMLFormElement).elements.namedItem('layers-sort') as RadioNodeList).value
-            : (targetEl as HTMLSelectElement).value;
-          if (action === 'filter') {
-            const filterAttr = `data-${['','true'].includes(value) ? 'visible' : 'group'}`;
-            document.querySelectorAll(`[${filterAttr}]`).forEach(
-              e => e.className = (value === '' || e.getAttribute(filterAttr) === value) ? 'layer' : 'layer hidden'
-            );
-          } else {
-            const sortFn = (a: Element, b: Element) => Number(a.getAttribute(`data-${value}`)! > b.getAttribute(`data-${value}`)! || -1) * Number(value !== 'visible' || -1);
-            _layersList.replaceChildren(...Array.from(_layersList.children).sort(sortFn));
-          }
+
+      const fixId = (id: string | undefined) => id ? id.replace(/(_|\s|\&)/gi, '-').toLowerCase() : undefined;
+      const toTitle = (str: string): string => str.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+
+      const _lyrsCtrl = document.createElement('form');
+      _lyrsCtrl.className = 'layers-ctrl';
+      _lyrsCtrl.innerHTML = ['filter','sort'].reduce((p, v, i) => {
+          const vals: Array<{label: string; value?: boolean | string | number;}> = ctrlVals[v as 'filter'|'sort'];
+          const fieldEls = i === 0
+            ? '<select id="lyrs-filter">'+vals.map(e => `<option value="${e.value}">${e.label}</option>`).join('')+'</select>'
+            : vals.map(e => `
+                <input type="radio" id="lyrs-sort-${fixId(e.label)}" name="lyrs-sort" value="${e.label}" />
+                <label for="lyrs-sort-${fixId(e.label)}">${toTitle(e.label)}</label>
+             `).join('');
+
+          return p + `
+          <div class="input-field-group layers-${v} ${i === 0 ? 'full-width' : 'hide-input'}">
+            <span class="map-btn --no-int bi bi-${this.icons[v as 'filter'|'sort']}"></span>
+            ${fieldEls}
+          </div>
+          `;
         },
-        children: ['filter','sort'].map(
-          (v,i,a) => this.newFormGrp(i === 0 ? 'select' : 'radio', i === 1, ctrlVals[v as 'filter'|'sort'], {
-            label: `<span class="map-btn --no-int bi bi-${this.icons[v as 'filter'|'sort']}"></span>`,
-            group: `layers-${v}`,
-            addClass: `layers-${v} ${i === 0 ? 'full-width' : 'hide-input'}`
-          })
-        )
-      });
-      this._layersEl.prepend(layersCtrl);
+        ''
+      );
+      _lyrsCtrl.onchange = (e: any) => {
+        const targetEl = e.target as HTMLElement;
+        const action = String(targetEl.getAttribute('name') ?? targetEl.id).split('-')[1];
+        const value = action === 'sort'
+          ? ((e.currentTarget as HTMLFormElement).elements.namedItem('lyrs-sort') as RadioNodeList).value
+          : (targetEl as HTMLSelectElement).value;
+
+        if (action === 'filter') {
+          const prop = `data-${['','true'].includes(value) ? 'visible' : 'group'}`;
+          const lyrClass = (attr: string | null) => `layer${(value === '' || attr === value) ? '' : ' hidden'}`;
+          document.querySelectorAll(`[${prop}]`).forEach(e => e.className = lyrClass(e.getAttribute(prop)));
+        } else {
+          _lyrsList.replaceChildren(
+            ...Array.from(_lyrsList.children).sort(
+              (a, b) => Number(a.getAttribute(`data-${value}`)! > b.getAttribute(`data-${value}`)! || -1) * Number(value !== 'visible' || -1)
+            )
+          );
+        }
+      };
+
+      this._layersEl.prepend(_lyrsCtrl);
     }
   }
+
   makeLayerEl(lyr: BaseLayer): HTMLElement {
     const toTitle = (str: string): string => str.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
-    const _label = this.newEl('label', {
+
+    const _label = document.createElement('label');
+    Object.assign(_label, {
       className: 'layer-label',
-      htmlFor: lyr.getClassName() + '_toggle',
-      innerHTML: [
-        `<span>${toTitle(lyr.getClassName())}</span>`,
-        ...(lyr.get('group') ? [`<span class="group">${lyr.get('group')}</span>`] : [])
-      ].join('')
+      htmlFor: lyr.getClassName() + '-toggle',
+      innerHTML: `<span>${toTitle(lyr.getClassName())}</span><span class="group">${lyr.get('group')||''}</span>`
     });
 
-    const _toggle = this.newEl('input', {
+    const _toggle = document.createElement('input');
+    Object.assign(_toggle, {
       className: lyr.getClassName(),
       type: 'checkbox',
-      id: lyr.getClassName() + '_toggle',
+      id: lyr.getClassName() + '-toggle',
       name: lyr.getClassName(),
       title: 'Toggle Layer',
       checked: lyr.getVisible(),
       onclick: (e: MouseEvent) => {
-        const _layerEl = document.querySelector(`.layer[data-name="${lyr.getClassName()}"]`)!;
+        const layerEl = document.querySelector(`.layer[data-name="${lyr.getClassName()}"]`)!;
         lyr.setVisible(!lyr.getVisible());
-        _layerEl.setAttribute('data-visible', String(lyr.getVisible()));
+        layerEl.setAttribute('data-visible', String(lyr.getVisible()));
         if (['VectorTileLayer','VectorLayer'].includes(lyr.get('lyrType'))) {
-          const _legend: HTMLElement = _layerEl.querySelector('.legend')!;
-          _legend.style.display = !lyr.getVisible() ? 'none' : 'flex';
-          if (lyr.getVisible() && !_legend.hasChildNodes()) {
-            const _legendTable = this.makeLegend(lyr.get('styleDetails'));
-            _legend.appendChild(_legendTable);
-          }
+          const legend: HTMLElement = layerEl.querySelector('.legend')!;
+          legend.style.display = !lyr.getVisible() ? 'none' : 'flex';
+          if (lyr.getVisible() && !legend.hasChildNodes()) legend.appendChild(
+            this.makeLegend(lyr.get('styleDetails'))
+          );
         }
       }
     });
 
-    const _infoBtn = this.newEl('button', {
+    const _infoBtn = document.createElement('button');
+    Object.assign(_infoBtn, {
       className: 'layer-info map-btn --icon',
       type: 'button',
       title: lyr.getClassName() + ' More Info',
@@ -176,93 +203,64 @@ export class LayersMgmt extends Control {
       onclick: (e: MouseEvent) => { alert(Object.entries(lyr.getProperties())); }
     });
 
-    const _legend = this.newEl('div', {
-      className: 'legend',
-      ...((lyr.getVisible() && ['VectorTileLayer','VectorLayer'].includes(lyr.get('lyrType'))) && {
-        children: [
-          this.makeLegend(lyr.get('styleDetails'))
-        ]
-      })
-    });
+    const _legend = document.createElement('div');
+    _legend.className = 'legend';
+    if (lyr.getVisible() && String(lyr.get('lyrType')).startsWith('Vector')) _legend.appendChild(
+      this.makeLegend(lyr.get('styleDetails'))
+    );
 
-    return this.newEl('div', {
-      className: 'layer',
-      children: [_toggle,_label,_infoBtn,_legend],
-      'data-name': lyr.getClassName(),
-      'data-group': lyr.get('group') || '',
-      'data-visible': String(lyr.getVisible())
-    });
-  }
+    const _layer = document.createElement('div');
+    _layer.className = 'layer';
+    _layer.append(_toggle, _label, _infoBtn, _legend);
+    [lyr.getClassName(), lyr.get('group') || '', String(lyr.getVisible())].forEach(
+      (e, i) => _layer.setAttribute(`data-${['name','group','visible'][i]}`, e)
+    );
 
-  private newEl<HTMLType extends keyof HTMLElementTagNameMap>(tag: HTMLType, props: { [key: string]: any }): HTMLElementTagNameMap[HTMLType] {
-    const _newEl = document.createElement(tag);
-    Object.entries(props).forEach(e => {
-      if (e[0] === 'children') {
-        _newEl.append(...e[1])
-      } else if (['checked','className','htmlFor','id','innerHTML','name','onclick','onchange','title','type'].includes(e[0])) {
-        Object.assign(_newEl, Object.fromEntries([e]));
-      } else {
-        _newEl.setAttribute(e[0], e[1]);
-      }
-    });
-    return _newEl;
+    return _layer;
   }
 
   private makeLegend<FT extends LyrConstants['feat-type']>(opts: {style: LyrConstants['style-type'], geom: FT, opts: LyrStyleOpts<any, any>}): HTMLTableElement {
     const base: FT extends 'Point' ? LyrConstants['Point-base'] : LyrConstants[FT] = opts.opts.base;
-    const classes: { [key: string]: LyrConstants[FT]; } = (opts.opts as LyrStyleOpts<'ramp-basic'|'ramp-special', any>).classes || {};
-    const allClasses = Object.assign({base: base}, classes || {});
+    const classes = Object.assign(
+      {base: base},
+      (opts.opts as LyrStyleOpts<'ramp-basic'|'ramp-special', any>).classes || {}
+    );
     const get = <Init extends string|number> (row: any, prop: string, init: Init): Init => row[prop] || (base as any)[prop] || init;
     const makePatch: {[key: string]: (row: any) => string} = {
       'Point': (row: LyrConstants['Point'|'Point-base']) => get(row,'src','').startsWith('data:image/svg')
         ? get(row,'src','').slice(24).replace('fill:white;',`fill:${get(row,'fill','rgb(128,147,241)')};`)
         : `<img src="${get(row,'src','')}" />`,
       'Line': (row: LyrConstants['Line']) => {
-        const attrs = [
+        const styling = [
           `stroke:${this.reColor(get(row,'stroke',''))};stroke-width:20;`,
           `stroke:${get(row,'stroke','')};stroke-width:12;${row.strokeType === 'dashed' ? 'stroke-dasharray:45 20;' : ''}`
         ];
 
-        return `<svg width="1em" height="0.5em" viewBox="0 0 200 100">${attrs.reduce((p,v) => `${p}<path d="M15 85 Q 25 50 85 50 L115 50 Q175 50 185 15" style="fill:transparent;stroke-linecap:round;${v}" />`,'')}</svg>`;
+        return `
+        <svg width="1em" height="0.5em" viewBox="0 0 200 100">
+          ${styling.reduce(
+            (p,v) => `${p}<path d="M15 85 Q 25 50 85 50 L115 50 Q175 50 185 15" style="fill:transparent;stroke-linecap:round;${v}" />`, ''
+          )}
+        </svg>`;
       },
       'Polygon': (row: LyrConstants['Polygon']) => {
-        const attrs = [
-          `fill:${get(row,'fill','transparent')};stroke:${get(row,'stroke','') || this.reColor(get(row,'fill','rgba(0,0,0,0)'))};${row.strokeType === 'dashed' ? 'stroke-dasharray:45 20;':''}`
-        ];
+        const styling = `fill:${get(row,'fill','transparent')};stroke:${get(row,'stroke','') || this.reColor(get(row,'fill','rgba(0,0,0,0)'))};${row.strokeType === 'dashed' ? 'stroke-dasharray:45 20;':''}`;
 
-        return `<svg width="1em" height="0.5em" viewBox="0 0 200 100">${attrs.reduce((p,v)=> `${p}<rect x="10" y="10" width="180" height="80" style="fill-opacity:0.7;stroke-width:10;${v}" />`,'')}</svg>`;
+        return `
+          <svg width="1em" height="0.5em" viewBox="0 0 200 100">
+            <rect x="10" y="10" width="180" height="80" style="fill-opacity:0.7;stroke-width:10;${styling}" />
+          </svg>
+        `;
       }
     };
 
-    return this.newEl('table', {
-      class: 'map-table legend',
-      children: Object.entries(allClasses).map(e => this.newEl('tr', {
-        innerHTML: `<td class="patch">${makePatch[opts.geom](e[1])}</td><td class="label">${e[1].label}</td>`
-      }))
-    });
-  }
+    const _newTable = document.createElement('table');
+    _newTable.className = 'map-table legend';
+    _newTable.innerHTML = Object.entries(classes).map(
+      c => `<tr><td class="patch">${makePatch[opts.geom](c[1])}</td><td class="label">${c[1].label}</td></tr>`
+    ).join('');
 
-  private newFormGrp(
-    type: 'radio' | 'select',
-    hideInput: boolean,
-    values: Array<{label: string; value?: boolean | string | number;}>,
-    wrapper: {label: string, group: string, addClass?: string}
-  ): HTMLElement {
-    const fixId = (id: string | undefined) => id ? id.replace(/(_|\s|\&)/gi, '-').toLowerCase() : undefined;
-    const toTitle = (str: string): string => str.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
-    const fieldEls = type === 'select'
-      ? [this.newEl('select', { id: fixId(wrapper.group), innerHTML: values.map(v => `<option value="${v.value}">${v.label}</option>`).join('') })]
-      : values.flatMap(v => [
-            this.newEl('label', { for: `${fixId(v.label)}-${type}`, innerHTML: toTitle(v.label) }),
-            this.newEl('input', { type: type, id: `${fixId(v.label)}-${type}`, name: fixId(wrapper.group), checked: v.value || false, value: v.value || v.label })
-          ].sort((a,b) => Number(a > b || -1) * Number(hideInput || -1)
-        )
-      );
-    return this.newEl('div', {
-        class: `input-field-group${wrapper.addClass ? ' ' + wrapper.addClass : ''}`,
-        innerHTML: wrapper.label,
-        children: fieldEls
-    });
+    return _newTable;
   }
 
   private reColor(color: string, opacity = 0.8): string {
@@ -271,7 +269,7 @@ export class LayersMgmt extends Control {
     const _color = color.length === 4 ? color.split('').map((v,i) => i < 1 ? v : v + v).join('') : color;
     // separate 3 color channels into a string array
     const rgbRaw = isHex ? _color.slice(1).match(/.{2}/g)!.slice(0,3) : _color.replace(/[a-z\s\(\)]/ig,'').split(',', 3);
-    const yiqVal = rgbRaw.reduce((s,v,i,a) => s + (parseInt(v, isHex ? 16 : 10) * [299, 587, 114][i]), 0) / 1000;
+    const yiqVal = rgbRaw.reduce((s,v,i) => s + (parseInt(v, isHex ? 16 : 10) * [299, 587, 114][i]), 0) / 1000;
       // If the YIQ is above 128 then it's considered a bright color.
     return yiqVal >= 128 ? `rgba(100,100,100,${opacity})` : `rgba(245,245,245,${opacity})`;
   };

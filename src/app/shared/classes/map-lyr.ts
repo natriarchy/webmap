@@ -113,8 +113,8 @@ export class Lyr<LT extends LyrConstants['layer-type']>{
       return str;
     };
 
-    const notUrl = !String((_baseOpts as any).src).match(/^(http|assets)/i);
-    if (geom === 'Point' && style === 'basic' && notUrl) (_baseOpts as any).src = makeSVG(
+    const notUri = !String((_baseOpts as any).src).match(/^(http|assets)/i);
+    if (geom === 'Point' && style === 'basic' && notUri) (_baseOpts as any).src = makeSVG(
       (opts.base as any).src || 'geo-alt-filled',
       {style: ['-webkit-',''].map(i => `${i}filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.3))`).join(';') + `;stroke:black;`}
     );
