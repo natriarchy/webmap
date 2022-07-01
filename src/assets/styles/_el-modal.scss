@@ -54,7 +54,7 @@
     // animation-duration: 500ms;
     // animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
     max-width: calc(100vw - 1.65rem - 350px);
-    max-height: 50vh;
+    max-height: 100%;
     width: 30rem;
     @media only screen and (max-width: 576px) {
         max-width: unset;
@@ -79,6 +79,7 @@
     align-self: stretch;
     flex-direction: column;
     margin: 0.5rem 0;
+    overflow-y: auto;
 }
 
 .modal-actions {
