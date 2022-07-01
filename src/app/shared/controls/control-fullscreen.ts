@@ -1,10 +1,5 @@
 import FullScreen from "ol/control/FullScreen";
 
-const makeLabel = (className: string): HTMLSpanElement => {
-  const newEl = document.createElement('span');
-  newEl.className = className;
-  return newEl;
-};
 
 export class FullScreenCustom extends FullScreen {
   readonly name = 'full-screen';
@@ -14,9 +9,9 @@ export class FullScreenCustom extends FullScreen {
   };
   constructor(opts?: {targetId?: string}) {
     super({
-      label: makeLabel('bi bi-fullscreen'),
+      label: Object.assign(document.createElement('span'), {className: 'bi bi-fullscreen'}),
       tipLabel: 'Toggle Full Screen',
-      labelActive: makeLabel('bi bi-fullscreen-exit')
+      labelActive: Object.assign(document.createElement('span'), {className: 'bi bi-fullscreen-exit'})
     });
     const targetEl = document.getElementById(opts?.targetId || 'controltb-top-left') || document.createElement('section');
     targetEl.id = opts?.targetId || 'controltb-top-left';

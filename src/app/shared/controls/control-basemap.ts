@@ -22,21 +22,20 @@ export class BasemapToggle extends Control {
   _tippy: any;
   basemaps: Array<BasemapInfo>;
   constructor(opts: {sources: Array<BasemapInfo>; targetId?: string;}) {
-    super({element: document.createElement('div')});
+    super({element: Object.assign(document.createElement('div'),{className: 'ol-unselectable ol-custom-control'})});
     this.set('name', this.name);
     this.basemaps = opts.sources;
 
-    this._ctrlBtn = document.createElement('button');
-    this._ctrlBtn.title = 'Set Basemap';
-    this._ctrlBtn.setAttribute('type', 'button');
-    this._ctrlBtn.innerHTML = `<span class="bi bi-${this.icons.ctrl}"></span>`;
-    this._ctrlBtn.onclick = e => e.preventDefault();
+    this._ctrlBtn = Object.assign(document.createElement('button'), {
+      title: 'Set Basemap',
+      type: 'button',
+      innerHTML: `<span class="bi bi-${this.icons.ctrl}"></span>`,
+      onclick: (e: MouseEvent) => e.preventDefault()
+    });
 
-    this.element.className = 'ol-unselectable ol-custom-control';
     this.element.appendChild(this._ctrlBtn);
 
-    this._dropdownEl = document.createElement('div');
-    this._dropdownEl.className = 'tippy-dropdown';
+    this._dropdownEl = Object.assign(document.createElement('div'), {className: 'tippy-dropdown'});
     const init = this.basemaps.find(s => s.active)?.name || this.basemaps[0].name;
     this._dropdownEl.append(...this.basemaps.map(
       (el,i,a) => this.makeListBtn(el.name, el.active || el.name === init)
@@ -148,16 +147,16 @@ export class BasemapToggle extends Control {
 
   private makeListBtn(name: string, active = false): HTMLElement {
     const title = name.split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
-    const _btn = document.createElement('button');
-    _btn.className = 'basemap-option';
-    _btn.innerHTML = title;
-    _btn.onclick = (e: any) => this.changeBasemap(e.target);
-    Object.entries({
-      'type': 'button',
-      'title': `Set Basemap to ${title}`,
-      'data-active': String(active || false),
-      'data-name': name
-    }).forEach(e => _btn.setAttribute(e[0], e[1]));
+    const _btn = Object.assign(document.createElement('button'), {
+      className: 'basemap-option',
+      type: 'button',
+      title: `Set Basemap to ${title}`,
+      innerHTML: title,
+      onclick: (e: any) => this.changeBasemap(e.target)
+    });
+    _btn.setAttribute('data-active', String(active || false));
+    _btn.setAttribute('data-name', name);
+
     return _btn;
   };
 }

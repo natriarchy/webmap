@@ -15,9 +15,7 @@ export class FeatureTooltip extends Overlay {
       stopEvent: true,
       id: 'pointer-tooltip'
     });
-    const overlayEl = document.createElement('div');
-    overlayEl.id = opts.tooltipId || 'pointer-tooltip';
-    super.element = overlayEl;
+    super.element = Object.assign(document.createElement('div'), {id: opts.tooltipId || 'pointer-tooltip'});
     this.set('name', this.name);
     this.set('tooltipId', opts.tooltipId || 'pointer-tooltip');
     this.pointerInt = new Pointer({handleMoveEvent: this.handlePointerMove.bind(this)});
@@ -67,29 +65,11 @@ export class FeatureTooltip extends Overlay {
       const lyr = this.selectInt.getLayer(e.selected[0]);
       const keyProp = lyr ? lyr.get('styleDetails').opts.keyProp : '';
       pointerTooltipEl.replaceChildren(
-        this.newEl('table', {
-          class: 'map-table basic',
+        Object.assign(document.createElement('table'), {
+          className: 'map-table basic',
           innerHTML: `<tr><th>${toTitle(lyr.getClassName())}</th></tr><tr><td>${String(e.selected[0].getId() || e.selected[0].get(keyProp))}</td></tr>`
         })
       );
     }
-  }
-
-  private newEl<HTMLType extends keyof HTMLElementTagNameMap>(
-    tag: HTMLType,
-    props: { [key: string]: any }
-  ): HTMLElementTagNameMap[HTMLType] {
-    const _newEl = document.createElement(tag);
-    Object.entries(props).forEach(a => {
-      if (a[0] === 'children') {
-        _newEl.append(...a[1]);
-      } else if (['checked','className','htmlFor','id','innerHTML','name','onclick','onchange','title','type'].includes(a[0])) {
-        Object.assign(_newEl, Object.fromEntries([a]));
-      } else {
-        _newEl.setAttribute(a[0], a[1]);
-      }
-    });
-
-    return _newEl;
   }
 }

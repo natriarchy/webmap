@@ -19,7 +19,7 @@ export class Geolocate extends Control {
   glLayer: VectorLayer<any>;
   active = false;
   constructor(opts?: { targetId?: string }) {
-    super({ element: document.createElement('div') });
+    super({ element: Object.assign(document.createElement('div'),{className: 'ol-unselectable ol-custom-control'}) });
     this.set('name', this.name);
 
     this._gl = new Geolocation({ trackingOptions: { enableHighAccuracy: true } });
@@ -48,13 +48,13 @@ export class Geolocate extends Control {
       source: new VectorSource({ features: [this.accuracyFt, this.positionFt] })
     });
 
-    this._ctrlBtn = document.createElement('button');
-    this._ctrlBtn.title = 'Find My Location';
-    this._ctrlBtn.setAttribute('type', 'button');
-    this._ctrlBtn.innerHTML = `<span class="bi bi-${this.icons['ctrl']}"></span>`;
-    this._ctrlBtn.onclick = this.handleClick.bind(this);
+    this._ctrlBtn = Object.assign(document.createElement('button'), {
+      title: 'Find My Location',
+      type: 'button',
+      innerHTML: `<span class="bi bi-${this.icons['ctrl']}"></span>`,
+      onclick: this.handleClick.bind(this)
+    });
 
-    this.element.className = 'ol-unselectable ol-custom-control';
     this.element.appendChild(this._ctrlBtn);
   }
   handleClick(e: MouseEvent): void {

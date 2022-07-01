@@ -10,20 +10,19 @@ export class ExportMap extends Control {
   _ctrlBtn: HTMLElement;
   _downloadEl: HTMLAnchorElement;
   constructor(opts?: { targetId?: string }) {
-    super({ element: document.createElement('div') });
+    super({ element: Object.assign(document.createElement('div'),{className: 'ol-unselectable ol-custom-control'}) });
     this.set('name', this.name);
 
-    this._downloadEl = document.createElement('a');
-    this._downloadEl.download = '';
+    this._downloadEl = Object.assign(document.createElement('a'), {download: ''});
     this._downloadEl.style.display = 'none';
 
-    this._ctrlBtn = document.createElement('button');
-    this._ctrlBtn.title = 'Export Map to PNG';
-    this._ctrlBtn.setAttribute('type', 'button');
-    this._ctrlBtn.innerHTML = `<span class="bi bi-${this.icons['ctrl']}"></span>`;
-    this._ctrlBtn.onclick = this.handleExport.bind(this);
+    this._ctrlBtn = Object.assign(document.createElement('button'), {
+      title: 'Export Map to PNG',
+      type: 'button',
+      innerHTML: `<span class="bi bi-${this.icons['ctrl']}"></span>`,
+      onclick: this.handleExport.bind(this)
+    });
 
-    this.element.className = 'ol-unselectable ol-custom-control';
     this.element.append(this._ctrlBtn, this._downloadEl);
     const observer = new MutationObserver((m, o) => {
       if (document.querySelector('.ol-overlaycontainer-stopevent')) {

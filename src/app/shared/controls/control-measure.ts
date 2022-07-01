@@ -67,10 +67,12 @@ export class Measure extends Control {
     this.segmentStyles = [this.styles.segment];
 
     const _ctrlBtn = document.createElement('button');
-    _ctrlBtn.title = 'Measure Distance, Radius, or Area';
-    _ctrlBtn.setAttribute('type', 'button');
-    _ctrlBtn.innerHTML = `<span class="bi bi-${this.icons.ctrl}"></span>`;
-    _ctrlBtn.onclick = (e) => e.preventDefault();
+    Object.assign(_ctrlBtn, {
+      title: 'Measure Distance, Radius, or Area',
+      type: 'button',
+      innerHTML: `<span class="bi bi-${this.icons.ctrl}"></span>`,
+      onclick: (e: MouseEvent) => e.preventDefault()
+    });
 
     this.element.className = 'ol-unselectable ol-custom-control';
     this.element.appendChild(_ctrlBtn);
@@ -97,12 +99,14 @@ export class Measure extends Control {
     dropdownEl.className = 'tippy-dropdown';
     dropdownEl.append(...['Distance','Area','Radius'].map((m,i,a) => {
       const _btn = document.createElement('button');
-      _btn.innerHTML = m;
-      _btn.setAttribute('type', 'button');
-      _btn.setAttribute('title', `Measure ${m}`);
-      _btn.setAttribute('data-active', 'false');
       _btn.value = m;
-      _btn.onclick = this.launch.bind(this);
+      Object.assign(_btn, {
+        innerHTML: m,
+        type: 'button',
+        title: `Measure ${m}`,
+        onclick: this.launch.bind(this)
+      });
+      _btn.setAttribute('data-active', 'false');
       return _btn;
     }));
     return dropdownEl;

@@ -19,10 +19,8 @@ export class ToastCtrl extends Control {
   _toastEl: HTMLElement;
 
   constructor(mapEl: HTMLElement, opts?: { targetId?: string }) {
-    super({element: document.createElement('section')});
+    super({element: Object.assign(document.createElement('section'),{className: 'toast-container --hidden'})});
     this.set('name', this.name);
-
-    this.element.className = 'toast-container --hidden';
 
     this._toastEl = this.reset();
 
@@ -42,22 +40,24 @@ export class ToastCtrl extends Control {
 
   reset(tone?: string): HTMLElement {
     if (this._toastEl) this._toastEl.remove();
-    this._toastEl = document.createElement('div');
-    this._toastEl.className = tone ? `toast --${tone}` : 'toast';
-    this._toastEl.innerHTML = `
-      <div class="toast-header">
-          <span class="toast-icon map-btn --no-int"></span>
-          <span class="toast-title"></span>
-          <hr>
-      </div>
-      <div class="toast-body" style="display:none"></div>
-      <div class="toast-timer" style="display:none"><div></div></div>
-    `;
+    this._toastEl = Object.assign(document.createElement('div'), {
+      className: tone ? `toast --${tone}` : 'toast',
+      innerHTML: `
+        <div class="toast-header">
+            <span class="toast-icon map-btn --no-int"></span>
+            <span class="toast-title"></span>
+            <hr>
+        </div>
+        <div class="toast-body" style="display:none"></div>
+        <div class="toast-timer" style="display:none"><div></div></div>
+      `
+    });
 
-    const _closeBtn = document.createElement('button');
-    _closeBtn.className = 'toast-close map-btn --icon';
-    _closeBtn.onclick = (e: any) => this.destroy('immediate');
-    _closeBtn.innerHTML = `<span class="bi bi-${this.icons['close']}"></span>`;
+    const _closeBtn = Object.assign(document.createElement('button'), {
+      className: 'toast-close map-btn --icon',
+      innerHTML: `<span class="bi bi-${this.icons['close']}"></span>`,
+      onclick: (e: any) => this.destroy('immediate')
+    });
 
     this._toastEl.querySelector('.toast-header')!.appendChild(_closeBtn);
     this.element.append(this._toastEl);
@@ -69,13 +69,11 @@ export class ToastCtrl extends Control {
     this._toastEl = this.reset(opts.tone);
     this.element.classList.remove('--hidden');
 
-    const makeInput = (val: string) => {
-      const _input = document.createElement('input');
-      _input.setAttribute('type', 'text');
-      _input.className = 'toastValue hide-input';
-      _input.setAttribute('value', val);
-      return _input;
-    };
+    const makeInput = (val: string) => Object.assign(document.createElement('input'), {
+      type: 'text',
+      className: 'toastValue hide-input',
+      value: val
+    });
     const valueInput = opts.value ? makeInput(opts.value) : undefined;
 
     this._toastEl.querySelector('.toast-icon')!.innerHTML = `<span class="bi bi-${this.icons[opts.tone]}"></span>`;

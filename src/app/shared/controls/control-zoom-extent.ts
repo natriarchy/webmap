@@ -21,15 +21,13 @@ export class ZoomExtent extends Control {
 
     this._buttons = Object.entries(this.icons)
       .filter(b => opts.defaultExtent ? true : b[0] !== 'Reset View')
-      .map(b => {
-        const _btn = document.createElement('button');
-        _btn.title = b[0];
-        _btn.setAttribute('type', 'button');
-        _btn.innerHTML = `<span class="bi bi-${b[1]}"></span>`;
-        _btn.onclick = this.handleClick.bind(this);
-
-        return _btn;
-      });
+      .map(b => Object.assign(document.createElement('button'), {
+          title: b[0],
+          type: 'button',
+          innerHTML: `<span class="bi bi-${b[1]}"></span>`,
+          onclick: this.handleClick.bind(this)
+        }) as HTMLElement
+      );
 
     this.element.className = 'ol-unselectable ol-custom-control';
     this.element.append(...this._buttons);

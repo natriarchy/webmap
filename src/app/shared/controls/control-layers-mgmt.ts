@@ -22,8 +22,7 @@ export class LayersMgmt extends Control {
     this.set('icon', this.icon);
 
     if (opts.type === 'standalone') {
-      const _ctrlBtn = document.createElement('button');
-      Object.assign(_ctrlBtn, {
+      const _ctrlBtn = Object.assign(document.createElement('button'), {
         type: 'button',
         title: 'Toggle Layers Manager',
         innerHTML: `<span class="bi bi-${this.icon}"></span>`,
@@ -90,8 +89,7 @@ export class LayersMgmt extends Control {
   }
 
   generateLayers(): void {
-    const _lyrsList = document.createElement('div');
-    _lyrsList.className = 'layers-list';
+    const _lyrsList = Object.assign(document.createElement('div'), {className: 'layers-list'});
     this._layersEl.appendChild(_lyrsList);
 
     this.getMap()!.getAllLayers()
@@ -118,9 +116,9 @@ export class LayersMgmt extends Control {
       const fixId = (id: string | undefined) => id ? id.replace(/(_|\s|\&)/gi, '-').toLowerCase() : undefined;
       const toTitle = (str: string): string => str.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
 
-      const _lyrsCtrl = document.createElement('form');
-      _lyrsCtrl.className = 'layers-ctrl';
-      _lyrsCtrl.innerHTML = ['filter','sort'].reduce((p, v, i) => {
+      const _lyrsCtrl = Object.assign(document.createElement('form'), {
+        className: 'layers-ctrl',
+        innerHTML: ['filter','sort'].reduce((p, v, i) => {
           const vals: Array<{label: string; value?: boolean | string | number;}> = ctrlVals[v as 'filter'|'sort'];
           const fieldEls = i === 0
             ? '<select id="lyrs-filter">'+vals.map(e => `<option value="${e.value}">${e.label}</option>`).join('')+'</select>'
@@ -137,26 +135,27 @@ export class LayersMgmt extends Control {
           `;
         },
         ''
-      );
-      _lyrsCtrl.onchange = (e: any) => {
-        const targetEl = e.target as HTMLElement;
-        const action = String(targetEl.getAttribute('name') ?? targetEl.id).split('-')[1];
-        const value = action === 'sort'
-          ? ((e.currentTarget as HTMLFormElement).elements.namedItem('lyrs-sort') as RadioNodeList).value
-          : (targetEl as HTMLSelectElement).value;
+        ),
+        onchange: (e: any) => {
+          const targetEl = e.target as HTMLElement;
+          const action = String(targetEl.getAttribute('name') ?? targetEl.id).split('-')[1];
+          const value = action === 'sort'
+            ? ((e.currentTarget as HTMLFormElement).elements.namedItem('lyrs-sort') as RadioNodeList).value
+            : (targetEl as HTMLSelectElement).value;
 
-        if (action === 'filter') {
-          const prop = `data-${['','true'].includes(value) ? 'visible' : 'group'}`;
-          const lyrClass = (attr: string | null) => `layer${(value === '' || attr === value) ? '' : ' hidden'}`;
-          document.querySelectorAll(`[${prop}]`).forEach(e => e.className = lyrClass(e.getAttribute(prop)));
-        } else {
-          _lyrsList.replaceChildren(
-            ...Array.from(_lyrsList.children).sort(
-              (a, b) => Number(a.getAttribute(`data-${value}`)! > b.getAttribute(`data-${value}`)! || -1) * Number(value !== 'visible' || -1)
-            )
-          );
+          if (action === 'filter') {
+            const prop = `data-${['','true'].includes(value) ? 'visible' : 'group'}`;
+            const lyrClass = (attr: string | null) => `layer${(value === '' || attr === value) ? '' : ' hidden'}`;
+            document.querySelectorAll(`[${prop}]`).forEach(e => e.className = lyrClass(e.getAttribute(prop)));
+          } else {
+            _lyrsList.replaceChildren(
+              ...Array.from(_lyrsList.children).sort(
+                (a, b) => Number(a.getAttribute(`data-${value}`)! > b.getAttribute(`data-${value}`)! || -1) * Number(value !== 'visible' || -1)
+              )
+            );
+          }
         }
-      };
+      });
 
       this._layersEl.prepend(_lyrsCtrl);
     }
@@ -165,15 +164,13 @@ export class LayersMgmt extends Control {
   makeLayerEl(lyr: BaseLayer): HTMLElement {
     const toTitle = (str: string): string => str.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
 
-    const _label = document.createElement('label');
-    Object.assign(_label, {
+    const _label = Object.assign(document.createElement('label'), {
       className: 'layer-label',
       htmlFor: lyr.getClassName() + '-toggle',
       innerHTML: `<span>${toTitle(lyr.getClassName())}</span><span class="group">${lyr.get('group')||''}</span>`
     });
 
-    const _toggle = document.createElement('input');
-    Object.assign(_toggle, {
+    const _toggle = Object.assign(document.createElement('input'), {
       className: lyr.getClassName(),
       type: 'checkbox',
       id: lyr.getClassName() + '-toggle',
@@ -194,8 +191,7 @@ export class LayersMgmt extends Control {
       }
     });
 
-    const _infoBtn = document.createElement('button');
-    Object.assign(_infoBtn, {
+    const _infoBtn = Object.assign(document.createElement('button'), {
       className: 'layer-info map-btn --icon',
       type: 'button',
       title: lyr.getClassName() + ' More Info',
@@ -203,14 +199,12 @@ export class LayersMgmt extends Control {
       onclick: (e: MouseEvent) => { alert(Object.entries(lyr.getProperties())); }
     });
 
-    const _legend = document.createElement('div');
-    _legend.className = 'legend';
+    const _legend = Object.assign(document.createElement('div'), {className: 'legend'});
     if (lyr.getVisible() && String(lyr.get('lyrType')).startsWith('Vector')) _legend.appendChild(
       this.makeLegend(lyr.get('styleDetails'))
     );
 
-    const _layer = document.createElement('div');
-    _layer.className = 'layer';
+    const _layer = Object.assign(document.createElement('div'), {className: 'layer'});
     _layer.append(_toggle, _label, _infoBtn, _legend);
     [lyr.getClassName(), lyr.get('group') || '', String(lyr.getVisible())].forEach(
       (e, i) => _layer.setAttribute(`data-${['name','group','visible'][i]}`, e)
@@ -254,13 +248,12 @@ export class LayersMgmt extends Control {
       }
     };
 
-    const _newTable = document.createElement('table');
-    _newTable.className = 'map-table legend';
-    _newTable.innerHTML = Object.entries(classes).map(
-      c => `<tr><td class="patch">${makePatch[opts.geom](c[1])}</td><td class="label">${c[1].label}</td></tr>`
-    ).join('');
-
-    return _newTable;
+    return Object.assign(document.createElement('table'), {
+      className: 'map-table legend',
+      innerHTML: Object.entries(classes).map(
+        c => `<tr><td class="patch">${makePatch[opts.geom](c[1])}</td><td class="label">${c[1].label}</td></tr>`
+      ).join('')
+    });
   }
 
   private reColor(color: string, opacity = 0.8): string {
